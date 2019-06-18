@@ -1,3 +1,7 @@
+FROM SCSE Research Group
+
+Utility Matrix -- this folder contains utility matrices derived from the MovieLens 100k dataset, specifically the u.data file.
+
 FROM KAGGLE
 
 Here are brief descriptions of the data.
