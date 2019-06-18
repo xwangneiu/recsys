@@ -9,7 +9,7 @@ def utility_matrix(data_csv, output_csv):
     import pandas as pd
     
     #import u.data file
-    df = pd.read_csv('../u.data', sep='\t', names=['user', 'movie', 'rating', 'timestamp'])
+    df = pd.read_csv(data_csv, sep='\t', names=['user', 'movie', 'rating', 'timestamp'])
     
     #remove timestamp -- not needed
     del df['timestamp']
