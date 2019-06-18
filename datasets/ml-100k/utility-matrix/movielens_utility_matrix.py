@@ -21,7 +21,7 @@ def utility_matrix(data_csv, output_csv):
     utility_matrix.to_csv(output_csv)
 
 def main():
-    utility_matrix('../u.data', '../movielens_utility_matrix.csv')
+    utility_matrix('../u.data', 'movielens_utility_matrix.csv')
 
 if __name__ == '__main__':
     main()
