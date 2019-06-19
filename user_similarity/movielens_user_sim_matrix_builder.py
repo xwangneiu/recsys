@@ -20,15 +20,19 @@ def user_similarity_cosine(data_csv, output_csv):
 	# (root of the squares of vector components, multiplied with each other)
 
 	# For loop through column, comparing it with every other column
-	output_df = pd.DataFrame()
+	input_df = input_df.iloc[:,:15]
+
+	output_series = []
 	for column_i in input_df:
 		cos_corr_list = []
-		for column_j in input_df:
+		for column_j in input_df[column_i:]:
 			dot_product = input_df[column_i].multiply(input_df[column_j])
 			cos_corr = dot_product.sum() / (math.sqrt(input_df[column_i].multiply(input_df[column_i]).sum()) * math.sqrt(input_df[column_j].multiply(input_df[column_j]).sum()))
 			cos_corr_list.append(cos_corr)
-		outputdf = output_df.append(pd.Series(cos_corr_list), ignore_index=True)	
-	print(output_df.head())
+		output_series.append(pd.Series(cos_corr_list))
+		print(output_series)
+	output_df = pd.concat(output_series, axis=1)
+	print(output_df)
 
 # Builds a sim. matrix with Pearson correlation
 def user_similarity_pearson(data_csv, output_csv):
