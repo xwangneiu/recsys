@@ -34,39 +34,53 @@ def build_test_similarity_matrix(utility_matrix_csv, similarity_matrix_csv_outpu
     
 def predictor(similarity_matrix_csv, utility_matrix_csv, user, item, k):
 
-    #import item-item similarity matrix
-    similarity = pd.read_csv(similarity_matrix_csv)
+    #import item-item similarity matrix. INDICES OK
+    similarity = pd.read_csv(similarity_matrix_csv, index_col=0)
     
-    #import utility matrix
+    #import utility matrix. INDICES OK
     utility = pd.read_csv(utility_matrix_csv)
-    
-   # print(utility.head(10))
-    
+    utility = utility.set_index('user')
     #correct data type of item parameter to string as required to query dataframe below
     item = str(item)
 
-    #similarity of all items to active item
+    #similarity of all items to active item. INDICES OK
     item_similarity = pd.DataFrame(similarity[item])
-        
-    #all ratings on items given by active user
+    
+    #all ratings on items given by active user. SELECTS CORRECT USER ROW
     user_ratings = pd.DataFrame(utility.iloc[user - 1])
     
+    #print(user_ratings.iat[int(item) - 1, 0]) #THIS IS HOW TO CORRECTLY SELECT THE RATING FOR A FILM item
+    
+    #print(user_ratings)
+    #print(user_ratings.shape[0])  #THIS IS HOW TO CORRECTLY GET THE NUMBER OF ROWS IN A DATAFRAME
+    
+    #have to delete top row which contains user ID
+    #print(len(utility.columns))
     #get weighted ratings (each item rating by the active user * that item's correlation with the active item)
-    weighted_ratings = np.zeros(len(utility.columns) - 1, dtype=float)
+    
+    weighted_ratings = np.zeros(user_ratings.shape[0], dtype=float)
     
     for i in range(1, len(weighted_ratings)):
-        weighted_ratings[i] = float(item_similarity.iloc[i][0] * user_ratings.iloc[i][0])
+        weighted_ratings[i] = float(item_similarity.iat[i, 0] * user_ratings.iat[i, 0])
     
     weighted_ratings = pd.DataFrame(weighted_ratings, columns=['weighted_rating'])
+    
+    print('item similarity: ')
+    print(item_similarity)
+    print('user ratings: ')
+    print(user_ratings)
+    print('Weighted Ratings: ')
+    print(weighted_ratings)
     
     #take absolute value for denominator of Simple Weighted Average function
     item_similarity_abs = item_similarity.apply(abs)
     
     #remove items not reviewed by user from item row of similarity matrix
-    for i in range(1, len(user_ratings.index)):
-        if not user_ratings.iloc[i][0] > 0:
-           item_similarity_abs.iloc[i][0] = 0
-            
+    
+    for i in range(1, len(user_ratings.index) - 1):
+        if not user_ratings.iat[i, 0] > 0:
+           item_similarity_abs.iat[i, 0] = 0
+    
     
     weighted_ratings_sum = float(weighted_ratings.sum()[0])
     
@@ -74,9 +88,12 @@ def predictor(similarity_matrix_csv, utility_matrix_csv, user, item, k):
     
     prediction = weighted_ratings_sum / item_correlations_abs_sum
     
-    print('RATING PREDICTION for USER ' + str(user) + ' on ITEM ' + item + ': ' + str(prediction))
-    #print(item_similarity_abs.sum()[0])
-    print(item_correlations_abs_sum)
+#    print('RATING PREDICTION for USER ' + str(user) + ' on ITEM ' + item + ': ' + str(prediction))
+#    #print(item_similarity_abs.sum()[0])
+#    print("User Ratings:")
+#    print(user_ratings.head(100))
+#    print("Item Similarity:")
+#    print(item_similarity_abs.head(100))
 #    print(weighted_ratings)
 #    print("user rat: ")
 #    print(user_ratings.iloc[1][0])
