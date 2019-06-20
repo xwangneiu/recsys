@@ -1,0 +1,19 @@
+From SCSE RecSys group
+
+MAIN Files
+
+yelp_review.csv is a file of >5 million rows, where each of them are a single review. The review is broken down into 9 columns: 'review_id'; 'user_id'; 'business_id'; 'stars'; 'date'; 'text'; 'useful'; 'funny'; 'cool'. Review_id is the id for the review itself. User_id corresponds to the reviewer's internal ID, found on yelp_user.csv. Business_id is the internal ID for the business being reviewed. Stars is the rating given by the reviewer. Date is the date formatted YYYY-MM-DD. Text is the semantic review. Useful, funny, and cool are votes from other users on the review itself.
+
+yelp_business.csv is a file ~200k unique businesses, including business ID, business name, neighborhood (if entered), city, state, address, zip code/postal code, latitude, longitude, average stars, number of reviews, if they are open, and a list of categories. Their names are:'business_id'; 'name'; 'neighborhood'; 'address'; 'city'; 'state'; 'postal_code'; 'latitude'; 'longitude'; 'stars';  'review_count'; 'is_open'; 'categories'.
+
+Other files
+
+yelp_user.csv contains user_id, name, user age, and other yelp specific attributes, including fans, number of funny, cool, or useful comments, average stars, compliments, and others.
+
+yelp_business_attributes.csv is a file is businesses and their potential attributes, such as if they accept credit cards, have street parking, only take appointments, ambience types, has alcohol, etc. There are 81 attributes in this list.
+
+yelp_business_hours.csv are the times a business is open per day of the week
+
+yelp_tips.csv contains comments made by users about businesses to give helpful information.
+
+yelp_checkin.csv contains data on weekday and time users check in/

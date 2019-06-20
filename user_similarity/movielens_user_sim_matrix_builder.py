@@ -43,10 +43,12 @@ def user_similarity_cosine(data_csv, output_csv):
 
 # Builds a sim. matrix with Pearson correlation
 def user_similarity_pearson(data_csv, output_csv):
-	df = transpose_matrix(data_csv)
+	input_df = transpose_matrix(data_csv)
+
+	
 
 def main():
-    user_similarity_cosine('../datasets/ml-100k/utility-matrix/movielens_utility_matrix.csv', 'movielens_user_sim_matrix_cosine.csv')
+    # user_similarity_cosine('../datasets/ml-100k/utility-matrix/movielens_utility_matrix.csv', 'movielens_user_sim_matrix_cosine.csv')
     user_similarity_pearson('../datasets/ml-100k/utility-matrix/movielens_utility_matrix.csv', 'movielens_user_sim_matrix_pearson.csv')
 
 if __name__ == '__main__':
