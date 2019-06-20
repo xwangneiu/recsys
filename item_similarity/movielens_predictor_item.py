@@ -6,6 +6,7 @@ Created on Tue Jun 18 13:01:30 2019
 """
 import numpy as np
 import pandas as pd
+import movielens_utility_matrix as mum
 
 #ITEM-BASED MOVIELENS PREDICTOR
 #Not the ultimate code we will be using, since we are coding Pearson correlation / cosine distance ourselves: just a test to see if the predictor works with a similarity matrix
@@ -32,15 +33,22 @@ def build_test_similarity_matrix(utility_matrix_csv, similarity_matrix_csv_outpu
         
     print(similarity)
     similarity.to_csv(similarity_matrix_csv_output)
-    
-def predictor(similarity_matrix_csv, utility_matrix_csv, user, item):
 
+#builds matrices from a given .base file in MovieLens dataset; outputs 
+def build_matrices_from_training_set(base_data):
+    
+
+def load_matrices_for_prediction(similarity_matrix_csv, utility_matrix_csv):
     #import item-item similarity matrix. INDICES OK
     similarity = pd.read_csv(similarity_matrix_csv, index_col=0)
     
     #import utility matrix. INDICES OK
     utility = pd.read_csv(utility_matrix_csv)
     utility = utility.set_index('user')
+    print(utility)
+    return utility, similarity
+    
+def predict(utility, similarity, user, item):
     #correct data type of item parameter to string as required to query dataframe below
     item = str(item)
 
@@ -60,24 +68,13 @@ def predictor(similarity_matrix_csv, utility_matrix_csv, user, item):
     
     for i in range(len(weighted_ratings)):
         weighted_ratings[i] = float(item_similarity.iat[i, 0] * user_ratings.iat[i, 0])
-    
+        
     weighted_ratings = pd.DataFrame(weighted_ratings, columns=['weighted_rating'])
-
-    weighted_ratings.index = user_ratings.index #replace weighted_ratings labels (which were off by one) INDICES OK
     
-#    print('user ratings: ')
-#    print(user_ratings)
-#    print('Weighted Ratings: ')
-#    print(weighted_ratings)
+    weighted_ratings.index = user_ratings.index #replace weighted_ratings labels (which were off by one) INDICES OK
     
     #take absolute value for denominator of Simple Weighted Average function
     item_similarity_abs = item_similarity.apply(abs) #WORKS CORRECTLY
-    
-#    print('similarity absolute values before: ')
-#    print(item_similarity_abs.head(20))
-#    
-#    print('user ratings: ')
-#    print(user_ratings.head(20))
     
     #remove items not reviewed by user from item row of similarity matrix. WORKS CORRECTLY
     
@@ -85,33 +82,17 @@ def predictor(similarity_matrix_csv, utility_matrix_csv, user, item):
         if not user_ratings.iat[i, 0] > 0:
            item_similarity_abs.iat[i, 0] = 0
            
-#    print('similarity absolute values after: ')
-#    print(item_similarity_abs.head(20))
-#    
-#    print('weighted ratings:')
-#    print(weighted_ratings.head(20))
+    #Get sums for Simple Weighted Average formula
     
     weighted_ratings_sum = float(weighted_ratings.sum()[0])
     
     item_correlations_abs_sum = float(item_similarity_abs.sum()[0])
     
+    #Calculate prediction
+    
     prediction = weighted_ratings_sum / item_correlations_abs_sum
     
     print('RATING PREDICTION for USER ' + str(user) + ' on ITEM ' + item + ': ' + str(prediction))
-#    #print(item_similarity_abs.sum()[0])
-#    print("User Ratings:")
-#    print(user_ratings.head(100))
-#    print("Item Similarity:")
-#    print(item_similarity_abs.head(100))
-#    print(weighted_ratings)
-#    print("user rat: ")
-#    print(user_ratings.iloc[1][0])
-
-    
-        
-    #CREATE LIST OF USER RATINGS ON K MOST SIMILAR ITEMS
-        
-    #CREATE LIST CONTAINING USER RATINGS * CORRELATION
 
 def main():
     user = int(input("Please enter the User ID of the active user: "))
@@ -120,7 +101,9 @@ def main():
     #build_test_similarity_matrix('../datasets/ml-100k/utility-matrix/movielens_utility_matrix.csv', 'test_only_similarity_matrix.csv')
     
     #build test driver that takes in lists and 
-    predictor('test_only_similarity_matrix.csv', '../datasets/ml-100k/utility-matrix/movielens_utility_matrix.csv', user, item)
+    
+    similarity, utility = load_matrices_for_prediction('test_only_similarity_matrix.csv', '../datasets/ml-100k/utility-matrix/movielens_utility_matrix.csv')
+    predict(similarity, utility, user, item)
     
 if __name__ == '__main__':
     main()
