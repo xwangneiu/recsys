@@ -44,12 +44,40 @@ def user_similarity_cosine(data_csv, output_csv):
 # Builds a sim. matrix with Pearson correlation
 def user_similarity_pearson(data_csv, output_csv):
 	input_df = transpose_matrix(data_csv)
+	# This line let's you test the matrix building on a smaller matrix
+	# input_df = input_df.iloc[:,:15]
+	output_series = []
 
-	
+	for column_i in input_df:
+		pearson_corr_list = []
+		for column_j in input_df:
+
+			corated_i = (input_df[column_j] / input_df[column_j]) * input_df[column_i]
+			corated_j = (input_df[column_i] / input_df[column_i]) * input_df[column_j]
+
+			mean_i = corated_i.mean()
+			mean_j = corated_j.mean()
+
+			calculated_i = corated_i - mean_i
+			calculated_j = corated_j - mean_j
+
+			numerator = (calculated_i*calculated_j).sum()
+			denumerator = math.sqrt((calculated_i * calculated_i).sum()) * math.sqrt((calculated_j * calculated_j).sum())
+
+			pearson_corr = numerator / denumerator
+
+			pearson_corr_list.append(pearson_corr)
+		output_series.append(pd.Series(pearson_corr_list))
+	output_df = pd.concat(output_series, axis = 1)
+	output_df.index = input_df.columns
+	output_df.columns = input_df.columns
+	output_df.to_csv(output_csv)
+
 
 def main():
+	# Uncomment to run the methods
     # user_similarity_cosine('../datasets/ml-100k/utility-matrix/movielens_utility_matrix.csv', 'movielens_user_sim_matrix_cosine.csv')
-    user_similarity_pearson('../datasets/ml-100k/utility-matrix/movielens_utility_matrix.csv', 'movielens_user_sim_matrix_pearson.csv')
+    # user_similarity_pearson('../datasets/ml-100k/utility-matrix/movielens_utility_matrix.csv', 'movielens_user_sim_matrix_pearson.csv')
 
 if __name__ == '__main__':
     main()
