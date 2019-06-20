@@ -49,7 +49,7 @@ def main():
                 #query item-based MovieLens predictor
                 elif response_ml == 2:
                         user, item = query_user_item()
-                        mlp_item.predict(utility, similarity, user, item)
+                        print("PREDICTION for USER " + str(user) + " on ITEM " + str(item) + ": " + str(mlp_item.predict(utility, similarity, user, item)))
                         print('\n')
                 elif response_ml == 3:
                     print(sorry)
