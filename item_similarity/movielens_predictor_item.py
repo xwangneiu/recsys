@@ -9,12 +9,28 @@ import pandas as pd
 import movielens_utility_matrix as mum
 
 #ITEM-BASED MOVIELENS PREDICTOR
+
+#build_test_similarity_matrix
 #Not the ultimate code we will be using, since we are coding Pearson correlation / cosine distance ourselves: just a test to see if the predictor works with a similarity matrix
 #this just uses .corrwith so we can test the predictor
 #it also takes about 20 minutes to run.
-def build_test_similarity_matrix(utility_matrix_csv, similarity_matrix_csv_output):
-    utility = pd.read_csv(utility_matrix_csv)
+#Parameters
+#utility_matrix: takes a CSV or Pandas DataFrame input
+#importing_csv: boolean, If utility_matrix parameter is a CSV, True; if DataFrame input for utility_matrix, False
+#similarity_matrix_csv_output: filename for CSV export of similarity matrix (required, even if not exporting)
+#export_csv: boolean; if exporting CSV, True, otherwise False
+#Returns
+#Pandas Dataframe containing similarity matrix
 
+def build_test_similarity_matrix(utility_matrix, importing_csv, similarity_matrix_csv_output, exporting_csv):
+    
+    utility = ""
+    
+    if importing_csv:
+        utility = pd.read_csv(utility_matrix)
+    else:
+        utility = utility_matrix
+    
     #create first column/dataframe
     row = utility.corrwith(utility['1'])
     row = pd.DataFrame(row, columns=['1'])
@@ -31,11 +47,17 @@ def build_test_similarity_matrix(utility_matrix_csv, similarity_matrix_csv_outpu
             print('Correlating item ' + str(i) + '...')
         similarity[str(i)] = get_item_corrs(i)
         
-    print(similarity)
-    similarity.to_csv(similarity_matrix_csv_output)
+    #print(similarity)
+    if exporting_csv:
+        similarity.to_csv(similarity_matrix_csv_output)
+    return similarity
 
-#builds matrices from a given .base file in MovieLens dataset; outputs 
-def build_matrices_from_training_set(base_data):
+#builds matrices from a given .base file in MovieLens dataset; outputs two Pandas dataframes: 
+def build_matrices_from_training_set(base_data_csv):
+    utility = mum.utility_matrix(base_data_csv, 'test_utility.csv', False)
+    similarity = build_test_similarity_matrix(utility, False, 'test_similarity.csv', False)
+    return utility, similarity
+    
     
 
 def load_matrices_for_prediction(similarity_matrix_csv, utility_matrix_csv):
@@ -98,7 +120,7 @@ def main():
     user = int(input("Please enter the User ID of the active user: "))
     item = int(input("Please enter the Film ID of the desired film: "))
     
-    #build_test_similarity_matrix('../datasets/ml-100k/utility-matrix/movielens_utility_matrix.csv', 'test_only_similarity_matrix.csv')
+    #build_test_similarity_matrix('../datasets/ml-100k/utility-matrix/movielens_utility_matrix.csv', 'test_only_similarity_matrix.csv', True)
     
     #build test driver that takes in lists and 
     
