@@ -10,7 +10,7 @@ import pandas as pd
 #needed in order to import movielens_utility_matrix function
 
 import movielens_utility_matrix as mum
-
+y
 #ITEM-BASED MOVIELENS PREDICTOR
 '''
 build_test_similarity_matrix
@@ -89,8 +89,9 @@ def build_test_similarity_matrix_int(utility_matrix, importing_csv, similarity_m
 #builds matrices from a given .base file in MovieLens dataset; outputs two Pandas dataframes: 
 def build_matrices_from_training_set(base_data_csv):
     utility = mum.utility_matrix(base_data_csv, 'test_utility.csv', False)
+    print(utility)
     similarity = build_test_similarity_matrix_int(utility, False, 'test_similarity.csv', False)
-    return utility, similarity
+    return utility#, similarity
 
 def load_matrices_for_prediction(similarity_matrix_csv, utility_matrix_csv):
     #import item-item similarity matrix. INDICES OK

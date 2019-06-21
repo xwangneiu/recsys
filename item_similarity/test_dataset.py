@@ -40,7 +40,7 @@ def test_dataset(utility, similarity, test_set):
     print(test_results)
         
 def main():
-    utility, similarity = mlp_item.build_matrices_from_training_set('../datasets/ml-100k/u1.base')
+    utility = mlp_item.build_matrices_from_training_set('../datasets/ml-100k/u1.base')
     test_set = import_test_set('../datasets/ml-100k/u1.test')
     test_dataset(utility, similarity, test_set)
     
