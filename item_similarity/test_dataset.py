@@ -11,7 +11,6 @@ import movielens_predictor_item as mlp_item
 #takes Pandas Dataframes from a training set and a test set
 
 def import_test_set(test_set_csv):
-    
     #import u.data file
     test_set = pd.read_csv(test_set_csv, sep='\t', names=['user', 'movie', 'rating', 'timestamp'])
 
