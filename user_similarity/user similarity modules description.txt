@@ -1,19 +1,22 @@
-main()
-Description: This function calls the two similiarity builders if the file is run from the python intepreter as the main file AND if the calls are uncommented. This method primarily encapsulates the methods so the file can be safely imported.
-Input: None
-Output: User similarity matrix
+MovieLens	
+	main()
+	Description: This function calls the two similiarity builders if the file is run from the python intepreter as the main file AND if the calls are uncommented. This method primarily encapsulates the methods so the file can be safely imported.
+	Input: None
+	Output: User similarity matrix
 
-transpose_matrix(data_csv)
-Description: This function takes the input file directory, read and turns the file into a Pandas DataFrame, transposes it, and returns the new dataframe.
-Input: file path name to a CSV
-Output: Pandas DataFrame, transposed
+	transpose_matrix(data_csv)
+	Description: This function takes the input file directory, read and turns the file into a Pandas DataFrame, transposes it, and returns the new dataframe.
+	Input: file path name to a CSV
+	Output: Pandas DataFrame, transposed
 
-user_similarity_cosine(data_csv, output_csv)
-Description: This function builds a user similarity matrix from the file located at data_csv to the file at output_csv. The similarity is based on cosine distance. It calls the transpose_matrix(data_csv) to both read and transpose the matrix. The file used the columns (usually users) and results in a n x n csv where n is the number of users.
-Input: File path to dataset csv, file path to output csv
-Output: Does not have a return type, but outputs a csv file
+	user_similarity_cosine(data_csv, output_csv)
+	Description: This function builds a user similarity matrix from the file located at data_csv to the file at output_csv. The similarity is based on cosine distance. It calls the transpose_matrix(data_csv) to both read and transpose the matrix. The file used the columns (usually users) and results in a n x n csv where n is the number of users.
+	Input: File path to dataset csv, file path to output csv
+	Output: Does not have a return type, but outputs a csv file
 
-user_similarity_pearson(data_csv, output_csv)
-Description: This function builds a user similarity matrix from the file located at data_csv to the file at output_csv. The similarity is based on Pearson Correlation. It calls the transpose_matrix(data_csv) to both read and transpose the matrix. The file used the columns (usually users) and results in a n x n csv where n is the number of users.
-Input: File path to dataset csv, file path to output csv
-Output: Does not have a return type, but outputs a csv file
+	user_similarity_pearson(data_csv, output_csv)
+	Description: This function builds a user similarity matrix from the file located at data_csv to the file at output_csv. The similarity is based on Pearson Correlation. It calls the transpose_matrix(data_csv) to both read and transpose the matrix. The file used the columns (usually users) and results in a n x n csv where n is the number of users.
+	Input: File path to dataset csv, file path to output csv
+	Output: Does not have a return type, but outputs a csv file
+
+Yelp

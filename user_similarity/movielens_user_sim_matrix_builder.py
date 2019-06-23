@@ -1,6 +1,9 @@
 # SCSE RecSys Group
 # Minh N. and Chen T.
 # 19.06.18
+# This module builds two user similarity matrices from a MovieLens utility matrix
+# The similiarities are cosine distance and Pearson Correlation
+
 import pandas as pd
 import numpy as np
 import math
