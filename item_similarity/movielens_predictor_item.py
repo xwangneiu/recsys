@@ -9,7 +9,7 @@ import pandas as pd
 
 #needed in order to import movielens_utility_matrix function
 
-import movielens_utility_matrix as mum
+
 
 #ITEM-BASED MOVIELENS PREDICTOR
 '''
@@ -148,7 +148,7 @@ def predict(utility, similarity, user, item):
     
     #print('RATING PREDICTION for USER ' + str(user) + ' on ITEM ' + item + ': ' + str(prediction))
     return(prediction)
-
+'''
 #takes a Dataset object and a DataFrame with two columns, 'user' and 'item'
 def item_predict_2001_weighted_sum(dataset, users_and_items):
     #similarity of all items to active item. INDICES OK
@@ -195,8 +195,7 @@ def item_predict_2001_weighted_sum(dataset, users_and_items):
         
         #
         
-        
-    '''    
+            
     #print(user_ratings.iat[int(item) - 1, 0]) #THIS IS HOW TO CORRECTLY SELECT THE RATING FOR A FILM item
 
     #print(user_ratings.shape[0])  #THIS IS HOW TO CORRECTLY GET THE NUMBER OF ROWS IN A DATAFRAME
@@ -220,14 +219,12 @@ def item_predict_2001_weighted_sum(dataset, users_and_items):
     for i in range(user_ratings.shape[0]):
         if not user_ratings.iat[i, 0] > 0:
            item_similarity_abs.iat[i, 0] = 0
-    '''
-
+'''
 def main():
     user = int(input("Please enter the User ID of the active user: "))
     item = int(input("Please enter the Film ID of the desired film: "))
     users_and_items = {'user': user, 'item': item}
     users_and_items = pd.DataFrame(users_and_items, index=[0])
-    dataset.
     print(users_and_items)
     
     

@@ -237,9 +237,9 @@ class TrainingAndTest:
 #format: load_<dataset name>
 
 #load MovieLens datasets
-
-def load_ml_100k():
+        
     #MovieLens 100k main source file
+def load_ml_100k():
     ml_100k = Dataset("MovieLens 100k main file")
     ml_100k.algorithm = 'neighborhood-based collaborative filtering'
     ml_100k.source = 'datasets/ml-100k/u.data'
@@ -251,21 +251,23 @@ def load_ml_100k():
     #ml_100k.build_item_pearson_sim('item_similarity/ml_100k_item_pearson_sim.csv') do later
     ml_100k.build_item_pearson_sim_df() #build item-based utility matrix dataframe
     
+    #returns Dataset object to calling function
+    return ml_100k
 
-    #ml_100k.build_item_similarity
 
-def load_ml_u1():
     #MovieLens 100k u1 test/training set
+def load_ml_u1():
     ml_u1 = TrainingAndTest("MovieLens u1 training/test sets")
     ml_u1.algorithm = 'item-based neighborhood-based collaborative filtering'
     ml_u1.training.source = 'datasets/ml-100k/u1.base'
     ml_u1.training.build_df()
     ml_u1.training.item_utility_source = 'datasets/ml-100k/utility-matrix/ml_u1_item_utility.csv'
     ml_u1.training.build_item_utility_df()
-    #ml_u1.training.build_item_pearson_sim('item_similarity/ml_u1_item_pearson_sim.csv')
+    ml_u1.training.build_item_pearson_sim('item_similarity/ml_u1_item_pearson_sim.csv')
+    
 
 def main():
-    load_ml_100k()
+    load_ml_u1()
     
 if __name__ == '__main__':
     main()
