@@ -9,12 +9,13 @@ Created on Thu Jun 20 18:38:50 2019
 Dataset Class
 I created this class because each dataset can be represented as an object.
 Each dataset has a source csv file,
-and will have a utility matrix and a similarity matrix.
+and will have a utility matrix, a similarity matrix, and a 
 Objects are an easy way to bundle them together.
 '''
 import numpy as np
 import pandas as pd
 import math
+import timeit
 
 class Dataset:
     #INSTANCE VARIABLES
@@ -95,6 +96,7 @@ class Dataset:
     #ITEM-BASED METHODS
     
     #builds item-based utility matrix for data file at specified filename
+    #results in an item-based utility matrix with columns denoted '1', '2', '3' (strings) and rows 1, 2, 3 (integers)
     def build_item_utility(self, dest_filename):
         if self.item_utility_source is None:
             if self.df is None:
@@ -110,13 +112,16 @@ class Dataset:
         if self.item_utility_source is None:
             print('build_item_utility_df Error: build a utility matrix source csv file first')
         else:
-            self.item_utility_df = pd.read_csv(self.item_utility_source)
+            self.item_utility_df = pd.read_csv(self.item_utility_source, index_col = 0)
     
-    #build item-based similarity matrix using Pearson correlation
-    def build_item_pearson_sim(self, dest_filename):
+    #build item-based similarity matrix using Pandas Corrwith function (test purposes only)
+    def build_item_pearson_sim_corrwith(self, dest_filename):
         #NEED TO IMPLEMENT CODE THAT MAKES IT WORK EVEN IF UTILITY NOT BUILT, etc.
+        
+        #if utility matrix not built yet
         if self.item_utility_df is None:
             print('build_item_pearson_sim Error: Utility matrix must be built first')
+            
         else:            
             #create first column/dataframe
             row = self.item_utility_df.corrwith(self.item_utility_df['1']) #may need to make string
@@ -126,56 +131,85 @@ class Dataset:
                 if i % 10 == 0:
                     print('Correlating item ' + str(i) + '...')
                 similarity[i] = self.item_utility_df.corrwith(self.item_utility_df[str(i)])
-            similarity = similarity.drop(similarity.index[0])
-            del similarity[similarity.columns[0]]
             print(similarity)
             self.item_pearson_sim_df = similarity
             similarity.to_csv(dest_filename)
             self.item_pearson_sim_source = dest_filename
             
-            '''
-            BELOW CODE IS MINH N.'s HAND-CODED PEARSON CORRELATION
-            output_series = []
-            input_df = self.item_utility_df
-            for column_i in input_df:
-                print('Correlating column ' + str(column_i))
-                pearson_corr_list = []
-                for column_j in input_df:
-                    corated_i = (input_df[column_j] / input_df[column_j]) * input_df[column_i]
-                    corated_j = (input_df[column_i] / input_df[column_i]) * input_df[column_j]
+    def build_item_pearson_sim(self, dest_filename):
+        #NEED TO IMPLEMENT CODE THAT MAKES IT WORK EVEN IF UTILITY NOT BUILT, etc.
         
-                    mean_i = corated_i.mean()
-                    mean_j = corated_j.mean()
-        
-                    calculated_i = corated_i - mean_i
-                    calculated_j = corated_j - mean_j
-        
-                    numerator = (calculated_i*calculated_j).sum()
-                    denumerator = math.sqrt((calculated_i * calculated_i).sum()) * math.sqrt((calculated_j * calculated_j).sum())
-        
-                    pearson_corr = numerator / denumerator
-        
-                    pearson_corr_list.append(pearson_corr)
-                output_series.append(pd.Series(pearson_corr_list))
-            output_df = pd.concat(output_series, axis = 1)
-            output_df.index = input_df.columns
-            output_df.columns = input_df.columns
-            self.item_pearson_sim_df = output_df
-            output_df.to_csv(dest_filename)
-            '''
+        #if utility matrix not built yet
+        if self.item_utility_df is None:
+            print('build_item_pearson_sim Error: Utility matrix must be built first')           
+        else:
+            utility_np = self.item_utility_df.to_numpy()
+            similarity_np = np.zeros((len(utility_np[0]), len(utility_np[0])), dtype=float) 
+            
+            #PEARSON CORRELATION FUNCTION
+            def pearson_corr(col1, col2):
+                #get mean values of columns before removing non-corated user ratings
+                col1_mean = np.nanmean(col1) #mean excluding nans
+                col2_mean = np.nanmean(col2)
+
+                #Finds corated values by checking each element of each array for non-NaN status and performing AND on the results
+                col1_rated = np.logical_not(np.isnan(col1))
+                #print(col1_rated[0:25])
+                col2_rated = np.logical_not(np.isnan(col2))
+                #print(col2_rated[0:25])
+                corated = np.logical_and(col1_rated, col2_rated)
+                #print(corated[0:25])
+                #print(col1_rated[0:25])
+                
+                sum_product_distances_from_mean = 0
+                sum_squared_col1_distances_from_mean = 0
+                sum_squared_col2_distances_from_mean = 0
+                
+                for i in range(0, len(col1)):
+
+                    if corated[i]:
+                        #numerator of formula
+                        col1_distance_from_mean = col1[i] - col1_mean
+                        col2_distance_from_mean = col2[i] - col2_mean
+                        sum_product_distances_from_mean += col1_distance_from_mean * col2_distance_from_mean
+                        #denominator of formula
+                        sum_squared_col1_distances_from_mean += (col1[i] - col1_mean) ** 2
+                        sum_squared_col2_distances_from_mean += (col2[i] - col2_mean) ** 2
+                    
+                corr = sum_product_distances_from_mean / ((math.sqrt(sum_squared_col1_distances_from_mean) * math.sqrt(sum_squared_col2_distances_from_mean)) + 0.0000001)
+                return corr
+            
+            #ITERATE OVER DATA
+            for i in range(len(similarity_np)):
+                print("Item " + str(i))
+                for j in range(len(similarity_np[i])):
+                    if similarity_np[j][i] != 0:
+                        similarity_np[i][j] = similarity_np[j][i]
+                    else:
+                        similarity_np[i][j] = pearson_corr(utility_np[:, i], utility_np[:, j])
+            
+            #EXPORT COMPLETED SIMILARITY MATRIX
+            similarity = pd.DataFrame(similarity_np, index = self.item_utility_df.columns, columns = self.item_utility_df.columns)
+            similarity.to_csv(dest_filename)
+            self.item_pearson_sim_source = dest_filename
+            self.item_pearson_sim_df = similarity
+            
+            print("My Pearson")
+            print(similarity)
     def build_item_pearson_sim_df(self):
         if self.item_pearson_sim_source is None:
-            print('build_item_pearson_sim_df Error: build an item-based Pearson correlation source csv file first')
+            print('build_item_pearson_sim_df Error: build an item-based Pearson correlation source csv file first with build_item_pearson_sim')
         else:
-            self.item_pearson_sim_df = pd.read_csv(self.item_pearson_sim_source)
-    
+            self.item_pearson_sim_df = pd.read_csv(self.item_pearson_sim_source, index_col = 0)
 
 #Class for training/test set pairs
+#TestSet subclass inherits from Dataset superclass
 class TestSet(Dataset):
     user_item_pairs_df = None
     predictions_df = None
     error_df = None
     
+    #CONSTRUCTOR
     def __init__(self, name):
         #Calling superclass constructor
         Dataset.__init__(self, name)
@@ -191,15 +225,19 @@ class TrainingAndTest:
     training = None
     test = None
     
+    #CONSTRUCTOR
     def __init__(self, name):
         self.name = name
         self.training = Dataset(self.name + ' training set')
         self.test = TestSet(self.name + ' test set')
-    
+        
+        
+   
 #DATASET LOADING FUNCTIONS
 #format: load_<dataset name>
 
 #load MovieLens datasets
+
 def load_ml_100k():
     #MovieLens 100k main source file
     ml_100k = Dataset("MovieLens 100k main file")
@@ -207,11 +245,12 @@ def load_ml_100k():
     ml_100k.source = 'datasets/ml-100k/u.data'
     ml_100k.build_df() #build dataframe from the source
     ml_100k.item_utility_source = 'datasets/ml-100k/utility-matrix/ml_100k_item_utility.csv'
-    ml_100k.build_item_utility_df() #build item-based utility matrix dataframe
+    #ml_100k.build_item_utility('datasets/ml-100k/utility-matrix/ml_100k_item_utility.csv') #build item-based utility matrix dataframe
+    ml_100k.build_item_utility_df()
     ml_100k.item_pearson_sim_source = 'item_similarity/ml_100k_item_pearson_sim.csv'
+    #ml_100k.build_item_pearson_sim('item_similarity/ml_100k_item_pearson_sim.csv') do later
     ml_100k.build_item_pearson_sim_df() #build item-based utility matrix dataframe
     
-    print(ml_100k.item_pearson_sim_df)
 
     #ml_100k.build_item_similarity
 
@@ -222,9 +261,9 @@ def load_ml_u1():
     ml_u1.training.source = 'datasets/ml-100k/u1.base'
     ml_u1.training.build_df()
     ml_u1.training.item_utility_source = 'datasets/ml-100k/utility-matrix/ml_u1_item_utility.csv'
-    ml_u1.training.build_item_utility(ml_u1.training.item_utility_source)
+    ml_u1.training.build_item_utility_df()
     #ml_u1.training.build_item_pearson_sim('item_similarity/ml_u1_item_pearson_sim.csv')
-    
+
 def main():
     load_ml_100k()
     

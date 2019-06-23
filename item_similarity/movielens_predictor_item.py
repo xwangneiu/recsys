@@ -152,21 +152,35 @@ def predict(utility, similarity, user, item):
 #takes a Dataset object and a DataFrame with two columns, 'user' and 'item'
 def item_predict_2001_weighted_sum(dataset, users_and_items):
     #similarity of all items to active item. INDICES OK
-    sim = dataset.item_pearson_sim_df
-    utility = dataset.item_utility_df
-    results = np.zeros(users_and_items.shape[0], dtype=float)
-    for i in range(users_and_items.shape[0]):
-        user = users_and_items.iat[i, 0]
-        item = users_and_items.iat[i, 1]
-        #gets item similarity list
-        sim_item = pd.DataFrame(sim[item])
+    
+    sim = dataset.item_pearson_sim_df.to_numpy()
+    utility = dataset.item_utility_df.to_numpy()
+    users_and_items_np = users_and_items.to_numpy()
+    results = np.zeros(len(users_and_items_np), dtype=float)
+    
+    #this loop produces a prediction for each user/item in the users_and_items_np list
+    for i in range(users_and_items):
+        user = users_and_items[i][0] - 1 #have to subtract 1 to match numpy zero-based indexing
+        item = users_and_items[i][1] - 1 #have to subtract 1 to match numpy zero-based indexing
+        sim_item = sim[item, :]
+        
+        #remove unrated items from similarity list
+        
+        
+        #gets list of rated items by similarity
+        sim_item_index = np.zeros((len(users_and_items_np), 2), dtype=float)
+        for i in range(len(sim_item)):
+            sim_item_index[i][0] = i
+            sim_item_index[i][1] = sim_item[i]
+        sim_item = sim[item, :]
         #all ratings on items given by active user. SELECTS CORRECT USER ROW
-        user_ratings = pd.DataFrame(utility.iloc[user - 1])
+        user_ratings = utility[user, :]
+        
+        user_rating_exists = np.logical_not(np.isnan(user_ratings))
         
         ## remove item correlations of items not rated by user
         for j in range(user_ratings.shape[0]):
-            if user_ratings.iat[i, 0] <= 0:
-               sim_item.iat[i, 0] = 0
+            if user_rating_exists
         
         ## get top 31 items by correlation in sim_item 
         sim_item = sim_item.sort_values(by=item).head(31)
@@ -213,6 +227,7 @@ def main():
     item = int(input("Please enter the Film ID of the desired film: "))
     users_and_items = {'user': user, 'item': item}
     users_and_items = pd.DataFrame(users_and_items, index=[0])
+    dataset.
     print(users_and_items)
     
     
