@@ -25,6 +25,7 @@ def predict(dataset, users_and_items):
     
     #this loop produces a prediction for each user/item in the users_and_items_np list
     for i in range(len(users_and_items)):
+        print('Predicting user/item pair ' + str(i + 1))
         user = users_and_items[i][0] - 1 #have to subtract 1 to match numpy zero-based indexing
         item = users_and_items[i][1] - 1 #have to subtract 1 to match numpy zero-based indexing
         user_ratings = utility[user, :]
@@ -37,10 +38,7 @@ def predict(dataset, users_and_items):
         for j in range(len(sim_item)):
             if user_rating_nan[j]:
                 sim_item[j] = math.nan        
-        '''
-        sim_item_abs_sum = np.nansum(np.abs(sim_item))
-        ratings_weighted
-        '''
+
         #gets np array of tuples of top 30 most similar items to active item
         dtype = [('index', int), ('similarity', float)]
         sim_item_index = np.zeros(len(sim_item), dtype=dtype)
@@ -77,6 +75,7 @@ def predict(dataset, users_and_items):
         
         '''
         print('Top 30 similar:')
+        
         print(top_30_sim_items)
         print('Top 30 ratings:' )
         print(ratings_top_30)
@@ -85,20 +84,31 @@ def predict(dataset, users_and_items):
         print('PREDICTION for user ' + str(user + 1) + ' on item ' + str(item + 1) + ': ' + str(prediction))
         '''
         predictions[i] = prediction
+        predictions = pd.Series(predictions)
         
-    results['prediction'] = pd.Series(predictions)
-    print(results)
+    results['prediction'] = predictions
     
+    print(results)
+    return predictions
 
+#adds a prediction to a test set object
+    
 def main():
     #load MovieLens dataset
     
     #had to change directory, so we can run the called function in recsys/ rather than recsys/item_similarity/
     os.chdir('..')
     ml_100k = datasets.load_ml_100k()
+    ml_u1 = datasets.load_ml_u1()
     os.chdir('item_similarity')
-    users_and_items = pd.DataFrame([[1,1],[2,2]], columns=['user', 'item'])
-    predict(ml_100k, users_and_items)
+    users_and_items = ml_u1.test.user_item_pairs_df
+    prediction = predict(ml_100k, users_and_items)
+    ml_u1.test.build_predictions_df(prediction)
+    print(ml_u1.test.predictions_df)
+    ml_u1.test.build_error_df()
+    print(ml_u1.test.error_df)
+    ml_u1.test.save_test_results('ml_u1_2019_06_24_test_results.csv')
+    
     
     
     

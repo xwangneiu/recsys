@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 import math
 import timeit
+from item_similarity import item_predictor
 
 class Dataset:
     #INSTANCE VARIABLES
@@ -214,6 +215,26 @@ class TestSet(Dataset):
         #Calling superclass constructor
         Dataset.__init__(self, name)
     
+    def build_df(self):
+        self.df = pd.read_csv(self.source, sep='\t', header=None)
+        self.df.columns = ['user', 'item', 'observed rating', 'timestamp']
+    
+    def build_user_item_pairs_df(self):
+        self.user_item_pairs_df = pd.DataFrame(self.df)
+        del self.user_item_pairs_df['observed rating']
+        del self.user_item_pairs_df['timestamp']
+    
+    #takes a Series of predictions
+    def build_predictions_df(self, predictions):
+        self.predictions_df = pd.DataFrame(self.df)
+        self.predictions_df['prediction'] = predictions
+    
+    def build_error_df(self):
+        self.error_df = pd.DataFrame(self.predictions_df)
+        self.predictions_df['error'] = (self.predictions_df['observed rating'] - self.predictions_df['prediction']).abs()
+    
+    def save_test_results(self, dest_filename):
+        self.error_df.to_csv(dest_filename)
     #def predict(self): exports the user_item_pairs to a predictor which makes a prediction; returns/appends predictions
     
     #def calculate_error(self): adds error column
@@ -230,6 +251,7 @@ class TrainingAndTest:
         self.name = name
         self.training = Dataset(self.name + ' training set')
         self.test = TestSet(self.name + ' test set')
+    
         
         
    
@@ -250,7 +272,6 @@ def load_ml_100k():
     ml_100k.item_pearson_sim_source = 'item_similarity/ml_100k_item_pearson_sim.csv'
     #ml_100k.build_item_pearson_sim('item_similarity/ml_100k_item_pearson_sim.csv') do later
     ml_100k.build_item_pearson_sim_df() #build item-based utility matrix dataframe
-    
     #returns Dataset object to calling function
     return ml_100k
 
@@ -263,8 +284,16 @@ def load_ml_u1():
     ml_u1.training.build_df()
     ml_u1.training.item_utility_source = 'datasets/ml-100k/utility-matrix/ml_u1_item_utility.csv'
     ml_u1.training.build_item_utility_df()
-    ml_u1.training.build_item_pearson_sim('item_similarity/ml_u1_item_pearson_sim.csv')
+    ml_u1.training.item_pearson_sim_source = 'item_similarity/ml_u1_item_pearson_sim.csv'
+    #ml_u1.training.build_item_pearson_sim('item_similarity/ml_u1_item_pearson_sim.csv')
+    ml_u1.training.build_item_pearson_sim_df()
+    print(ml_u1.training.item_utility_df)
+    print(ml_u1.training.item_pearson_sim_df)
+    ml_u1.test.source = 'datasets/ml-100k/u1.test'
+    ml_u1.test.build_df()
+    ml_u1.test.build_user_item_pairs_df()
     
+    return ml_u1
 
 def main():
     load_ml_u1()
