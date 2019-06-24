@@ -286,6 +286,7 @@ def load_ml_u1():
     ml_u1.training.item_utility_source = 'datasets/ml-100k/utility-matrix/ml_u1_item_utility.csv'
     ml_u1.training.build_item_utility_df()
     ml_u1.training.item_pearson_sim_source = 'item_similarity/ml_u1_item_pearson_sim.csv'
+<<<<<<< HEAD
     #ml_u1.training.build_item_pearson_sim('item_similarity/ml_u1_item_pearson_sim.csv')
     ml_u1.training.build_item_pearson_sim_df()
     print(ml_u1.training.item_utility_df)
@@ -295,6 +296,11 @@ def load_ml_u1():
     print(ml_u1.test.df)
     
     return ml_u1
+=======
+    ml_u1.training.build_item_pearson_sim_df()
+    
+    
+>>>>>>> 0baaac3f68d727516a41d03ee7107b70af3f4d94
 
 def main():
     load_ml_100k
