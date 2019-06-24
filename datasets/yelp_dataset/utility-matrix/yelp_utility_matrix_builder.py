@@ -7,31 +7,45 @@
 import pandas as pd
 import numpy as np
 
+def aggregate_rewrite_matrix(data_csv):
+	# Take a csv, groupby users, aggregate, and fix elements
+	df = pd.read_csv(data_csv)
+	df = df.groupby(['user_id'])
+	df = df.agg(['sum'])
+	df = df.replace(to_replace = 0, value = np.nan)	
+	df.columns = df.columns.get_level_values(0)
+	df.to_csv('yelp_utility_matrix_mesa.csv')
+
 def utility_matrix(data_csv, output_csv):
 	
-	df_list = []
-	df = pd.DataFrame()
-	
-	# this reader was used to test the algorithm on 4 chunks
+	# this reader was used to test the algorithm on limited chunks
 	# reader = pd.read_csv(data_csv, iterator = True)
-	# for i in range(100):
+	# for i in range(700):
+		# chunk = reader.get_chunk(300)
 
 	# reads yelp_business.csv to join with chunks
-	# possibly needs to be restructured to include in parameters?
 	df_business = pd.read_csv('../yelp_business.csv')
+	df_business = df_business[['business_id','city']]
+
+	df_list = []
+	df = pd.DataFrame()
 
 	for chunk in pd.read_csv(data_csv, chunksize = 500):
-		# note that review.csv and business.csv both has 'stars' columns, which are relabeled as 'stars_x' and 'stars_y' respectively
 		chunk = pd.merge(chunk, df_business, on = 'business_id')
-		chunk = chunk[chunk.city == 'Mesa']
-		temp_df = pd.pivot_table(chunk, values = 'stars_x', index = 'user_id', columns = 'business_id')
-		df_list.append(temp_df)
-	while df_list:
-		df = pd.concat([df, df_list.pop(0)], sort = False)
+		chunk = chunk[chunk.city == 'Stuttgart']
+		chunk = pd.pivot_table(chunk, values = 'stars', index = 'user_id', columns = 'business_id')
+		df_list.append(chunk)
+	# The following commented code can replace the uncommented code
+	# The while loop concats one chunk at a time, which can save on a little memory but requires more computational time
+	# del df_business
+	# while df_list:
+		# df = pd.concat([df, df_list.pop()], sort = False)
+	df = pd.concat(df_list, sort = False)
 	df.to_csv(output_csv)
 
 def main():
-	utility_matrix('../yelp_review.csv', 'yelp_utility_matrix_mesa.csv')
+	utility_matrix('../yelp_review.csv', 'yelp_utility_matrix_stuttgart.csv')
+	aggregate_rewrite_matrix('yelp_utility_matrix_stuttgart.csv')
 
 if __name__ == '__main__' :
 	main()
