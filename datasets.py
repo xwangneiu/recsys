@@ -218,6 +218,7 @@ class TestSet(Dataset):
     def build_df(self):
         self.df = pd.read_csv(self.source, sep='\t', header=None)
         self.df.columns = ['user', 'item', 'observed rating', 'timestamp']
+        del self.df['timestamp']
     
     def build_user_item_pairs_df(self):
         self.user_item_pairs_df = pd.DataFrame(self.df)
@@ -269,8 +270,8 @@ def load_ml_100k():
     ml_100k.item_utility_source = 'datasets/ml-100k/utility-matrix/ml_100k_item_utility.csv'
     #ml_100k.build_item_utility('datasets/ml-100k/utility-matrix/ml_100k_item_utility.csv') #build item-based utility matrix dataframe
     ml_100k.build_item_utility_df()
-    ml_100k.item_pearson_sim_source = 'item_similarity/ml_100k_item_pearson_sim.csv'
-    #ml_100k.build_item_pearson_sim('item_similarity/ml_100k_item_pearson_sim.csv') do later
+    #ml_100k.item_pearson_sim_source = 'item_similarity/ml_100k_item_pearson_sim.csv'
+    ml_100k.build_item_pearson_sim('item_similarity/ml_100k_item_pearson_sim.csv')
     ml_100k.build_item_pearson_sim_df() #build item-based utility matrix dataframe
     #returns Dataset object to calling function
     return ml_100k
@@ -291,12 +292,12 @@ def load_ml_u1():
     print(ml_u1.training.item_pearson_sim_df)
     ml_u1.test.source = 'datasets/ml-100k/u1.test'
     ml_u1.test.build_df()
-    ml_u1.test.build_user_item_pairs_df()
+    print(ml_u1.test.df)
     
     return ml_u1
 
 def main():
-    load_ml_u1()
+    load_ml_100k
     
 if __name__ == '__main__':
     main()

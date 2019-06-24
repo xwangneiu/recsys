@@ -104,6 +104,7 @@ def main():
     users_and_items = ml_u1.test.user_item_pairs_df
     prediction = predict(ml_100k, users_and_items)
     ml_u1.test.build_predictions_df(prediction)
+    
     print(ml_u1.test.predictions_df)
     ml_u1.test.build_error_df()
     print(ml_u1.test.error_df)
