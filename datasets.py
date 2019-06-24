@@ -298,7 +298,8 @@ def load_ml_u1():
     ml_u1.training.build_item_pearson_sim_df()
 
 def main():
-    load_ml_100k
+    load_ml_100k()
+
     
 if __name__ == '__main__':
     main()
