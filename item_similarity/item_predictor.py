@@ -98,16 +98,13 @@ def main():
     
     #had to change directory, so we can run the called function in recsys/ rather than recsys/item_similarity/
     os.chdir('..')
-    ml_100k = datasets.load_ml_100k()
+    #ml_100k = datasets.load_ml_100k()
     ml_u1 = datasets.load_ml_u1()
     os.chdir('item_similarity')
     users_and_items = ml_u1.test.user_item_pairs_df
-    prediction = predict(ml_100k, users_and_items)
+    prediction = predict(ml_u1.training, users_and_items)
     ml_u1.test.build_predictions_df(prediction)
-    
     print(ml_u1.test.predictions_df)
-    ml_u1.test.build_error_df()
-    print(ml_u1.test.error_df)
     ml_u1.test.save_test_results('ml_u1_2019_06_24_test_results.csv')
     
     
