@@ -100,9 +100,10 @@ def main():
     os.chdir('..')
     #ml_100k = datasets.load_ml_100k()
     ml_u1 = datasets.load_ml_u1()
+    ml_u1 = TrainingAndTest(params)
     os.chdir('item_similarity')
-    users_and_items = ml_u1.test.user_item_pairs_df
-    #prediction = predict(ml_u1.training, users_and_items)
+    #users_and_items = ml_u1.test.user_item_pairs_df
+    #prediction = predict(ml_u1.training, ml_u1.test.user_item_pairs_df)
     print(ml_u1.test.predictions_df)
     #ml_u1.test.save_test_results('ml_u1_2019_06_24_test_results.csv')
     

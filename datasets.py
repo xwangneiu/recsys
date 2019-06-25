@@ -77,7 +77,15 @@ class Dataset:
     #CONSTRUCTOR
     def __init__(self, name):
         self.name = name
-        
+    '''
+    def __init__(self, data='ml', original_source, utility_source, type='item', similarity_source):
+        if data == 'ml':
+            self.df = build_df(original_source, data='ml') #function returns df
+            self.item_utility_df = build_item_utility_df(utility_source) #function returns utility df
+            self.item_pearson_sim_df = build_item_pearson_sim_df(similarity_source) #function returns sim df
+        elif data == 'yelp':
+            
+        '''
         
         
         
@@ -85,7 +93,6 @@ class Dataset:
     
     #build a dataframe from the source csv file
     def build_df(self):
-        #if no source file for the dataset has been specified:
         if self.source is None:
             print('build_df Error: Dataset Needs Source File; set Dataset.source = \'filename\'')
         else:
@@ -99,11 +106,21 @@ class Dataset:
     #builds item-based utility matrix for data file at specified filename
     #results in an item-based utility matrix with columns denoted '1', '2', '3' (strings) and rows 1, 2, 3 (integers)
     def build_item_utility(self, dest_filename):
+        #SHOULD CALL ml_utility_builder.build('csv', type='item') #item or user-based, depending on type argument
+        #import item_utility_builder
+        #item_utility_builder.build(params)
+        #always has to specify a source file
+        #   tries to read source file
+        #       if fails, builds source file from previous step dataframe
+        #           if no previous step dataframe, throws error
+        #   returns dataframe
+        
+        #if no source file for the dataset has been specified:
         if self.item_utility_source is None:
             if self.df is None:
                 self.build_df()
             self.item_utility_df = self.df.pivot_table(index='user', columns='movie', values='rating')
-            print(self.item_utility_df)
+            #print(self.item_utility_df)
             self.item_utility_df.to_csv(dest_filename)
             self.item_utility_source = dest_filename
         elif self.item_utility_df is None:
@@ -218,14 +235,12 @@ class TestSet(Dataset):
         self.df = pd.read_csv(self.source, sep='\t', header=None) #formerly had headers=None
         self.df.columns = ['user', 'item', 'observed', 'timestamp']
         del self.df['timestamp']
-        print(self.df)
     
     def build_user_item_pairs_df(self):
         self.user_item_pairs_df = pd.read_csv(self.source, sep='\t', header=None)
         self.user_item_pairs_df.columns = ['user', 'item', 'observed', 'timestamp']
         del self.user_item_pairs_df['observed']
         del self.user_item_pairs_df['timestamp']
-        print(self.user_item_pairs_df)
         
     
     #takes a CSV
@@ -236,7 +251,6 @@ class TestSet(Dataset):
         elif predictions is not None:
             self.predictions_df = self.df
             self.predictions_df['prediction'] = predictions
-            print(self.predictions_df)
         else:
             print("No source data to build predictions dataframe")
         
@@ -263,6 +277,12 @@ class TrainingAndTest:
         self.name = name
         self.training = Dataset(self.name + ' training set')
         self.test = TestSet(self.name + ' test set')
+    '''
+    def __init__(self, training_source, test_source, training_um, training_sm, ):
+        self.training = Dataset(self.name + ' training set')
+        self.test = TestSet(self.name + ' test set')
+    '''
+        
     
 #CORRELATION/DISTANCE FUNCTIONS
 #PEARSON CORRELATION FUNCTION
@@ -328,10 +348,12 @@ def load_ml_100k():
 
     #MovieLens 100k u1 test/training set
 def load_ml_u1():
+    #NEED ONLY FUNCTIONS TO BE BUILD FUNCTIONS THAT TAKE A CSV
     ml_u1 = TrainingAndTest("MovieLens u1 training/test sets")
     ml_u1.algorithm = 'item-based neighborhood-based collaborative filtering'
     ml_u1.training.source = 'datasets/ml-100k/u1.base'
     ml_u1.training.build_df()
+    #ml_u1.training.build_item_utility_json('dest_filename')
     ml_u1.training.item_utility_source = 'datasets/ml-100k/utility-matrix/ml_u1_item_utility.csv'
     ml_u1.training.build_item_utility_df()
     ml_u1.training.item_pearson_sim_source = 'item_similarity/ml_u1_item_pearson_sim.csv'
