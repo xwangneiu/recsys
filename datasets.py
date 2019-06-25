@@ -175,7 +175,7 @@ class Dataset:
         if self.item_utility_df is None:
             print('build_item_pearson_sim Error: Utility matrix must be built first')           
         else:
-            self.user_utility_df = self.item_utility_df.transpose
+            self.user_utility_df = self.item_utility_df.transpose()
             utility_np = self.user_utility_df.to_numpy()
             similarity_np = np.zeros((len(utility_np[0]), len(utility_np[0])), dtype=float) 
             #ITERATE OVER DATA
