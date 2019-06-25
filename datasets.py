@@ -341,7 +341,6 @@ def load_ml_u1():
     #print(ml_u1.training.item_pearson_sim_df)
     ml_u1.test.source = 'datasets/ml-100k/u1.test'
     ml_u1.test.build_df()
-    print(ml_u1.test.df)
     ml_u1.test.build_user_item_pairs_df()
     ml_u1.test.build_predictions_df(csv='item_similarity/ml_u1_2019_06_24_test_results.csv')
     #print(ml_u1.test.df)

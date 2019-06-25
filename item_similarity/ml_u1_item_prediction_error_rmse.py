@@ -16,7 +16,7 @@ def calculate_rmse(dataframe):
     #dataframe has 'user', 'item', 'observed' columns
     
     #returns one number, a float
-
+    return 1
 def main():
     #load MovieLens u1 dataset
     #had to change directory, so we can run the called function in recsys/ rather than recsys/item_similarity/
