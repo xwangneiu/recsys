@@ -296,9 +296,20 @@ def load_ml_u1():
     
     return ml_u1
     ml_u1.training.build_item_pearson_sim_df()
-
+    
+def load_yelp_stut():
+    yelp_stut = Dataset("Yelp Stuttgart, Germany Reviews")
+    yelp_stut.item_utility_source = 'datasets/yelp_dataset/utility-matrix/yelp_utility_matrix_stuttgart.csv'
+    yelp_stut.build_item_utility_df()
+    print(yelp_stut.item_utility_df)
+    row_names = yelp_stut.item_utility_df.index
+    column_names = yelp_stut.item_utility_df.columns
+    print(row_names)
+    print(column_names)
+    yelp_stut.build_item_pearson_sim('item_similarity/yelp_stut_item_pearson_sim.csv')
+    print(yelp_stut.item_pearson_sim_df)
 def main():
-    load_ml_100k()
+    load_yelp_stut()
 
     
 if __name__ == '__main__':
