@@ -149,10 +149,6 @@ class Dataset:
             
             #PEARSON CORRELATION FUNCTION
             def pearson_corr(col1, col2):
-                #get mean values of columns before removing non-corated user ratings
-                col1_mean = np.nanmean(col1) #mean excluding nans
-                col2_mean = np.nanmean(col2)
-
                 #Finds corated values by checking each element of each array for non-NaN status and performing AND on the results
                 col1_rated = np.logical_not(np.isnan(col1))
                 #print(col1_rated[0:25])
@@ -162,9 +158,16 @@ class Dataset:
                 #print(corated[0:25])
                 #print(col1_rated[0:25])
                 
+                #if there are no corated values, return 0 to save time
+                if np.sum(corated) == 0: #this is a sum of True values (each True == 1)
+                    return 0
+                
                 sum_product_distances_from_mean = 0
                 sum_squared_col1_distances_from_mean = 0
                 sum_squared_col2_distances_from_mean = 0
+                #get mean values of columns before removing non-corated user ratings
+                col1_mean = np.nanmean(col1) #mean excluding nans
+                col2_mean = np.nanmean(col2)
                 
                 for i in range(0, len(col1)):
 
@@ -302,12 +305,10 @@ def load_yelp_stut():
     yelp_stut.item_utility_source = 'datasets/yelp_dataset/utility-matrix/yelp_utility_matrix_stuttgart.csv'
     yelp_stut.build_item_utility_df()
     print(yelp_stut.item_utility_df)
-    row_names = yelp_stut.item_utility_df.index
-    column_names = yelp_stut.item_utility_df.columns
-    print(row_names)
-    print(column_names)
-    yelp_stut.build_item_pearson_sim('item_similarity/yelp_stut_item_pearson_sim.csv')
+    yelp_stut.item_pearson_sim = 'item_similarity/yelp_stut_item_pearson_sim.csv'
+    #yelp_stut.build_item_pearson_sim('item_similarity/yelp_stut_item_pearson_sim.csv')
     print(yelp_stut.item_pearson_sim_df)
+    
 def main():
     load_yelp_stut()
 
