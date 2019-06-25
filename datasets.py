@@ -215,21 +215,28 @@ class TestSet(Dataset):
         Dataset.__init__(self, name)
     
     def build_df(self):
-        self.df = pd.read_csv(self.source, sep='\t', header=None)
+        self.df = pd.read_csv(self.source, sep='\t', header=None) #formerly had headers=None
         self.df.columns = ['user', 'item', 'observed', 'timestamp']
         del self.df['timestamp']
+        print(self.df)
     
     def build_user_item_pairs_df(self):
-        self.user_item_pairs_df = pd.DataFrame(self.df)
+        self.user_item_pairs_df = pd.read_csv(self.source, sep='\t', header=None)
+        self.user_item_pairs_df.columns = ['user', 'item', 'observed', 'timestamp']
         del self.user_item_pairs_df['observed']
+        del self.user_item_pairs_df['timestamp']
+        print(self.user_item_pairs_df)
+        
     
     #takes a CSV
     def build_predictions_df(self, csv=None, predictions=None):
         if csv is not None:
             self.predictions_df = pd.read_csv(csv, index_col=0)
+            self.predictions_df['observed'] = self.df['observed']
         elif predictions is not None:
-            self.predictions_df = pd.DataFrame(self.df)
+            self.predictions_df = self.df
             self.predictions_df['prediction'] = predictions
+            print(self.predictions_df)
         else:
             print("No source data to build predictions dataframe")
         
@@ -334,8 +341,9 @@ def load_ml_u1():
     #print(ml_u1.training.item_pearson_sim_df)
     ml_u1.test.source = 'datasets/ml-100k/u1.test'
     ml_u1.test.build_df()
-    #print(ml_u1.test.df)
+    print(ml_u1.test.df)
     ml_u1.test.build_user_item_pairs_df()
+    ml_u1.test.build_predictions_df(csv='item_similarity/ml_u1_2019_06_24_test_results.csv')
     #print(ml_u1.test.df)
     return ml_u1
     
@@ -348,7 +356,7 @@ def load_yelp_stut():
     print(yelp_stut.user_pearson_sim_df)
     
 def main():
-    load_yelp_stut()
+    load_ml_u1()
 
     
 if __name__ == '__main__':
