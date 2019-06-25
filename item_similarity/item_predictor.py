@@ -103,9 +103,10 @@ def main():
     os.chdir('item_similarity')
     users_and_items = ml_u1.test.user_item_pairs_df
     prediction = predict(ml_u1.training, users_and_items)
-    ml_u1.test.build_predictions_df(prediction)
-    print(ml_u1.test.predictions_df)
+    ml_u1.test.build_predictions_df(predictions=prediction)
     ml_u1.test.save_test_results('ml_u1_2019_06_24_test_results.csv')
+    print(ml_u1.test.predictions_df)
+    #ml_u1.test.save_test_results('ml_u1_2019_06_24_test_results.csv')
     
     
     

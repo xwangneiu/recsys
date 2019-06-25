@@ -220,17 +220,23 @@ class TestSet(Dataset):
     
     def build_df(self):
         self.df = pd.read_csv(self.source, sep='\t', header=None)
-        self.df.columns = ['user', 'item', 'observed rating', 'timestamp']
+        self.df.columns = ['user', 'item', 'observed', 'timestamp']
         del self.df['timestamp']
     
     def build_user_item_pairs_df(self):
         self.user_item_pairs_df = pd.DataFrame(self.df)
-        del self.user_item_pairs_df['observed rating']
+        del self.user_item_pairs_df['observed']
     
-    #takes a Series of predictions
-    def build_predictions_df(self, predictions):
-        self.predictions_df = pd.DataFrame(self.df)
-        self.predictions_df['prediction'] = predictions
+    #takes a CSV
+    def build_predictions_df(self, csv=None, predictions=None):
+        if csv is not None:
+            self.predictions_df = pd.read_csv(csv, index_col=0)
+        elif predictions is not None:
+            self.predictions_df = pd.DataFrame(self.df)
+            self.predictions_df['prediction'] = predictions
+        else:
+            print("No source data to build predictions dataframe")
+        
     
     def build_error_df(self):
         self.error_df = pd.DataFrame(self.predictions_df)
@@ -290,15 +296,14 @@ def load_ml_u1():
     ml_u1.training.item_pearson_sim_source = 'item_similarity/ml_u1_item_pearson_sim.csv'
     #ml_u1.training.build_item_pearson_sim('item_similarity/ml_u1_item_pearson_sim.csv')
     ml_u1.training.build_item_pearson_sim_df()
-    print(ml_u1.training.item_utility_df)
-    print(ml_u1.training.item_pearson_sim_df)
+    #print(ml_u1.training.item_utility_df)
+    #print(ml_u1.training.item_pearson_sim_df)
     ml_u1.test.source = 'datasets/ml-100k/u1.test'
     ml_u1.test.build_df()
+    #print(ml_u1.test.df)
     ml_u1.test.build_user_item_pairs_df()
-    print(ml_u1.test.df)
-    
+    #print(ml_u1.test.df)
     return ml_u1
-    ml_u1.training.build_item_pearson_sim_df()
     
 def load_yelp_stut():
     yelp_stut = Dataset("Yelp Stuttgart, Germany Reviews")
