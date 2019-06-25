@@ -269,8 +269,8 @@ def load_ml_100k():
     ml_100k.item_utility_source = 'datasets/ml-100k/utility-matrix/ml_100k_item_utility.csv'
     #ml_100k.build_item_utility('datasets/ml-100k/utility-matrix/ml_100k_item_utility.csv') #build item-based utility matrix dataframe
     ml_100k.build_item_utility_df()
-    #ml_100k.item_pearson_sim_source = 'item_similarity/ml_100k_item_pearson_sim.csv'
-    ml_100k.build_item_pearson_sim('item_similarity/ml_100k_item_pearson_sim.csv')
+    ml_100k.item_pearson_sim_source = 'item_similarity/ml_100k_item_pearson_sim.csv'
+    #ml_100k.build_item_pearson_sim('item_similarity/ml_100k_item_pearson_sim.csv')
     ml_100k.build_item_pearson_sim_df() #build item-based utility matrix dataframe
     #returns Dataset object to calling function
     return ml_100k
