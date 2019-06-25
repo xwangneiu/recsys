@@ -146,43 +146,6 @@ class Dataset:
         else:
             utility_np = self.item_utility_df.to_numpy()
             similarity_np = np.zeros((len(utility_np[0]), len(utility_np[0])), dtype=float) 
-            
-            #PEARSON CORRELATION FUNCTION
-            def pearson_corr(col1, col2):
-                #Finds corated values by checking each element of each array for non-NaN status and performing AND on the results
-                col1_rated = np.logical_not(np.isnan(col1))
-                #print(col1_rated[0:25])
-                col2_rated = np.logical_not(np.isnan(col2))
-                #print(col2_rated[0:25])
-                corated = np.logical_and(col1_rated, col2_rated)
-                #print(corated[0:25])
-                #print(col1_rated[0:25])
-                
-                #if there are no corated values, return 0 to save time
-                if np.sum(corated) == 0: #this is a sum of True values (each True == 1)
-                    return 0
-                
-                sum_product_distances_from_mean = 0
-                sum_squared_col1_distances_from_mean = 0
-                sum_squared_col2_distances_from_mean = 0
-                #get mean values of columns before removing non-corated user ratings
-                col1_mean = np.nanmean(col1) #mean excluding nans
-                col2_mean = np.nanmean(col2)
-                
-                for i in range(0, len(col1)):
-
-                    if corated[i]:
-                        #numerator of formula
-                        col1_distance_from_mean = col1[i] - col1_mean
-                        col2_distance_from_mean = col2[i] - col2_mean
-                        sum_product_distances_from_mean += col1_distance_from_mean * col2_distance_from_mean
-                        #denominator of formula
-                        sum_squared_col1_distances_from_mean += (col1[i] - col1_mean) ** 2
-                        sum_squared_col2_distances_from_mean += (col2[i] - col2_mean) ** 2
-                    
-                corr = sum_product_distances_from_mean / ((math.sqrt(sum_squared_col1_distances_from_mean) * math.sqrt(sum_squared_col2_distances_from_mean)) + 0.0000001)
-                return corr
-            
             #ITERATE OVER DATA
             for i in range(len(similarity_np)):
                 print("Item " + str(i))
@@ -198,13 +161,46 @@ class Dataset:
             self.item_pearson_sim_source = dest_filename
             self.item_pearson_sim_df = similarity
             
-            print("My Pearson")
+            print("Item-Based Pearson")
             print(similarity)
+            
     def build_item_pearson_sim_df(self):
         if self.item_pearson_sim_source is None:
             print('build_item_pearson_sim_df Error: build an item-based Pearson correlation source csv file first with build_item_pearson_sim')
         else:
             self.item_pearson_sim_df = pd.read_csv(self.item_pearson_sim_source, index_col = 0)
+
+    def build_user_pearson_sim(self, dest_filename):     
+        #if utility matrix not built yet
+        if self.item_utility_df is None:
+            print('build_item_pearson_sim Error: Utility matrix must be built first')           
+        else:
+            self.user_utility_df = self.item_utility_df.transpose()
+            utility_np = self.user_utility_df.to_numpy()
+            similarity_np = np.zeros((len(utility_np[0]), len(utility_np[0])), dtype=float) 
+            #ITERATE OVER DATA
+            for i in range(len(similarity_np)):
+                print("User " + str(i))
+                for j in range(len(similarity_np[i])):
+                    if similarity_np[j][i] != 0:
+                        similarity_np[i][j] = similarity_np[j][i]
+                    else:
+                        similarity_np[i][j] = pearson_corr(utility_np[:, i], utility_np[:, j])
+            
+            #EXPORT COMPLETED SIMILARITY MATRIX
+            similarity = pd.DataFrame(similarity_np, index = self.user_utility_df.columns, columns = self.user_utility_df.columns)
+            similarity.to_csv(dest_filename)
+            self.user_pearson_sim_source = dest_filename
+            self.user_pearson_sim_df = similarity
+            
+            print("User-Based Pearson")
+            print(similarity)
+            
+    def build_user_pearson_sim_df(self):
+        if self.user_pearson_sim_source is None:
+            print('build_user_pearson_sim_df Error: build a user-based Pearson correlation source csv file first with build_user_pearson_sim')
+        else:
+            self.user_pearson_sim_df = pd.read_csv(self.user_pearson_sim_source, index_col = 0)
 
 #Class for training/test set pairs
 #TestSet subclass inherits from Dataset superclass
@@ -261,6 +257,44 @@ class TrainingAndTest:
         self.training = Dataset(self.name + ' training set')
         self.test = TestSet(self.name + ' test set')
     
+#CORRELATION/DISTANCE FUNCTIONS
+#PEARSON CORRELATION FUNCTION
+        
+#Pearson correlation (takes two numpy arrays (columns))        
+def pearson_corr(col1, col2):
+    #Finds corated values by checking each element of each array for non-NaN status and performing AND on the results
+    col1_rated = np.logical_not(np.isnan(col1))
+    #print(col1_rated[0:25])
+    col2_rated = np.logical_not(np.isnan(col2))
+    #print(col2_rated[0:25])
+    corated = np.logical_and(col1_rated, col2_rated)
+    #print(corated[0:25])
+    #print(col1_rated[0:25])
+    
+    #if there are no corated values, return 0 to save time
+    if np.sum(corated) == 0: #this is a sum of True values (each True == 1)
+        return 0
+    
+    sum_product_distances_from_mean = 0
+    sum_squared_col1_distances_from_mean = 0
+    sum_squared_col2_distances_from_mean = 0
+    #get mean values of columns before removing non-corated user ratings
+    col1_mean = np.nanmean(col1) #mean excluding nans
+    col2_mean = np.nanmean(col2)
+    
+    for i in range(0, len(col1)):
+
+        if corated[i]:
+            #numerator of formula
+            col1_distance_from_mean = col1[i] - col1_mean
+            col2_distance_from_mean = col2[i] - col2_mean
+            sum_product_distances_from_mean += col1_distance_from_mean * col2_distance_from_mean
+            #denominator of formula
+            sum_squared_col1_distances_from_mean += (col1[i] - col1_mean) ** 2
+            sum_squared_col2_distances_from_mean += (col2[i] - col2_mean) ** 2
+        
+    corr = sum_product_distances_from_mean / ((math.sqrt(sum_squared_col1_distances_from_mean) * math.sqrt(sum_squared_col2_distances_from_mean)) + 0.0000001)
+    return corr
         
         
    
@@ -309,10 +343,9 @@ def load_yelp_stut():
     yelp_stut = Dataset("Yelp Stuttgart, Germany Reviews")
     yelp_stut.item_utility_source = 'datasets/yelp_dataset/utility-matrix/yelp_utility_matrix_stuttgart.csv'
     yelp_stut.build_item_utility_df()
-    print(yelp_stut.item_utility_df)
-    yelp_stut.item_pearson_sim = 'item_similarity/yelp_stut_item_pearson_sim.csv'
-    #yelp_stut.build_item_pearson_sim('item_similarity/yelp_stut_item_pearson_sim.csv')
-    print(yelp_stut.item_pearson_sim_df)
+    yelp_stut.item_pearson_sim_source = 'item_similarity/yelp_stut_item_pearson_sim.csv'
+    yelp_stut.build_user_pearson_sim('user_similarity/yelp_stut_user_pearson_sim.csv')
+    print(yelp_stut.user_pearson_sim_df)
     
 def main():
     load_yelp_stut()

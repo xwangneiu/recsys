@@ -27,7 +27,6 @@ def user_similarity_cosine(data_csv, output_csv):
 			cos_corr_list.append(cos_corr)
 
 		output_series.append(pd.Series(cos_corr_list))
-
 	output_df = pd.concat(output_series, axis = 1)
 	output_df.index = input_df.columns
 	output_df.columns = input_df.columns
@@ -63,8 +62,8 @@ def user_similarity_pearson(data_csv, output_csv):
 	output_df.to_csv(output_csv)
 
 def main():
-	user_similarity_cosine('../datasets/yelp_dataset/utility-matrix/yelp_utility_matrix_stuttgart.csv', 'yelp_user_sim_matrix_cosine')
-	# user_similarity_pearson('../datasets/yelp_dataset/utility-matrix/yelp_utility_matrix_stuttgart.csv', 'yelp_user_sim_matrix_pearson')
+	user_similarity_cosine('../datasets/yelp_dataset/utility-matrix/yelp_utility_matrix_stuttgart.csv', 'yelp_user_sim_matrix_cosine.csv')
+	# user_similarity_pearson('../datasets/yelp_dataset/utility-matrix/yelp_utility_matrix_stuttgart.csv', 'yelp_user_sim_matrix_pearson.csv')
 
 if __name__ == '__main__':
 	main()
