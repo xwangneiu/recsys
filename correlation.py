@@ -46,18 +46,21 @@ def pearson(col1, col2):
 
 #Parameters: two numpy 1-dimensional arrays (item/user vectors)
 def cosine(col1, col2):
-    #NANs are the problem
+    
+    col1 = np.nan_to_num(col1)
+    col2 = np.nan_to_num(col2)
     '''
-    dot_col1_col2 = np.sum(col1 * col2)
-    norm_col1 = math.sqrt(np.sum(np.power(col1, [2])))
-    norm_col2 = math.sqrt(np.sum(np.power(col2, [2])))
+    dot_col1_col2 = np.nansum(col1 * col2)
+    norm_col1 = math.sqrt(np.nansum(np.power(col1, [2])))
+    norm_col2 = math.sqrt(np.nansum(np.power(col2, [2])))
     return dot_col1_col2 / (norm_col1 * norm_col2)
     '''
     return np.dot(col1, col2) / (np.linalg.norm(col1, ord=2) * np.linalg.norm(col2, ord=2))
-
+    
 def main():
     #only for testing formulas
-    print(cosine(np.array([1,2,3,4]), np.array([1,2,3,9])))
+    print(cosine(np.array([1,2,math.nan,4,5]), np.array([1,math.nan,3,9,10])))
+    print(cosine(np.array([1,2,math.nan,4,5]), np.array([1,math.nan,3,9,10])))
 
 if __name__ == '__main__':
     main()

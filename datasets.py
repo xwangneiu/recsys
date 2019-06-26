@@ -15,6 +15,7 @@ Objects are an easy way to bundle them together.
 
 import pandas as pd
 from item_similarity import item_predictor
+import json
 
 class Dataset:
     #INSTANCE VARIABLES
@@ -215,6 +216,16 @@ class Dataset:
             um_df = ml_user_um_builder.build(self.og_df, um_file)
         print('MovieLens user-based utility matrix ready')
         return um_df
+    
+    def build_yelp_cosine_sm(self, sm_file):
+        sm_df = None
+        try:
+            with open(sm_file, 'r') as f:
+                sm_df = json.load(f)
+        except FileNotFoundError:
+            import yelp_cosine_sm_builder
+            print('Building Yelp cosine similarity matrix for the \'' + self.name + '\' dataset') 
+            sm_df = yelp_cosine_sm_builder.build(self.um_df, sm_file)
 
 #Class for training/test set pairs
 #TestSet subclass inherits from Dataset superclass
@@ -335,7 +346,7 @@ def load_ml_u1():
         'u1 training set',                                          #name
         'datasets/ml-100k/u1.base',                                 #original source
         'datasets/ml-100k/utility-matrix/ml_u1_item_utility.csv',   #utility matrix
-        'item_similarity/ml_u1_item_pearson_sim.csv')               #similarity matrix
+        'item_similarity/ml_u1_item_cosine_sim.csv', sim='cosine') #similarity matrix
     ml_u1.test = TestSet(
         'u1 test set',                                              #name
         'datasets/ml-100k/u1.test')                                 #original source

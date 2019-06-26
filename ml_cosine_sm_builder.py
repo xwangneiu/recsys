@@ -20,7 +20,6 @@ def build(um_df, output_file):
                 similarity_np[i][j] = similarity_np[j][i]
             else:
                 similarity_np[i][j] = correlation.cosine(utility_np[:, i], utility_np[:, j])
-                print(similarity_np[i][j])
     
     #EXPORT COMPLETED SIMILARITY MATRIX
     similarity = pd.DataFrame(similarity_np, index = um_df.columns, columns = um_df.columns)

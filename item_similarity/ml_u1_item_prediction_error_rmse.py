@@ -25,6 +25,7 @@ def main():
     os.chdir('item_similarity')
     print(calculate_rmse(ml_u1.test.predictions_df))
     
+    
 
 if __name__ == '__main__':
     main()
