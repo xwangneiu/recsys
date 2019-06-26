@@ -1,8 +1,9 @@
 # Builds the utility matrix from the yelp_review.csv file
-# specifically for Stuttgart, BW, Germany for testing.
-# Can be modified to build the matrix for the entirety of the file for all 11 metropolitan areas
+# This takes a zipcode list (.json) and builds UM with only reviews from those businesses there
+# The resulting .json is a dictionary of dictionaries
+# This one has items as the main key to a dictionary that has users as the keys to the rating
 # Minh N. and Chen T.
-# 2019.06.19
+# 2019.06.19, updated 6.25
 
 import pandas as pd
 import numpy as np
@@ -13,7 +14,7 @@ import json
 # 	builder(df, output path)
 
 
-def yelp_utility_matrix(data_csv, output_json, json_file_path = 'urbana_zip.json'):
+def yelp_utility_matrix(df, output_json, json_file_path = 'urbana_zip.json'):
 	with open(json_file_path, 'r') as f:
 		try:
 			zip_list = json.load(f)
@@ -22,29 +23,26 @@ def yelp_utility_matrix(data_csv, output_json, json_file_path = 'urbana_zip.json
 			return
 	businesses = pd.read_csv('../yelp_business.csv')
 	output_dict = {}
-	user = 0
-	rating = 0
-	for chunk in pd.read_csv(data_csv, chunksize = 1000):
+	for chunk in df:
 		chunk = chunk.merge(businesses[['business_id', 'postal_code']], on = 'business_id')
 		chunk = chunk[chunk.postal_code.isin(zip_list)]
 		for j in range(len(chunk.index)):
 			# Could optmize accessing each row? iterrow() was not working at the time
 			curr = chunk.iloc[j]
-			if curr.user_id in output_dict.keys():
-				output_dict[curr.user_id][curr.business_id] = int(curr.stars)
-				rating += 1
+			if curr.business_id in output_dict.keys():
+				output_dict[curr.business_id][curr.user_id] = int(curr.stars)
 			else:
-				output_dict[curr.user_id] = {curr.business_id : int(curr.stars)}
-				user += 1
-				rating += 1
-
+				output_dict[curr.business_id] = {curr.user_id: int(curr.stars)}
 	with open(output_json, 'w') as f:
 		json_dump = json.dumps(output_dict)
 		f.write(json_dump)
 		f.close()
+	print(json_dump)
+	return json_dump
 
 def main():
-	yelp_utility_matrix('../yelp_review.csv', 'yelp_utility_matrix_uc.json')
+	df = pd.read_csv('../yelp_review.csv', chunksize = 500)
+	yelp_utility_matrix(df, 'yelp_utility_matrix_uc_item.json')
 	# aggregate_rewrite_matrix('yelp_utility_matrix_stuttgart.csv')
 
 if __name__ == '__main__' :
