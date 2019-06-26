@@ -8,11 +8,44 @@ import pandas as pd
 import numpy as np
 import json
 
-def yelp_utility_matrix()
+# main()
+# 	df = f1(path) returns df
+# 	builder(df, output path)
 
+
+def yelp_utility_matrix(data_csv, output_json, json_file_path = 'urbana_zip.json'):
+	with open(json_file_path, 'r') as f:
+		try:
+			zip_list = json.load(f)
+		except:
+			print('Zip file for building UM possibly empty. Returning to caller.')
+			return
+	businesses = pd.read_csv('../yelp_business.csv')
+	output_dict = {}
+	user = 0
+	rating = 0
+	for chunk in pd.read_csv(data_csv, chunksize = 1000):
+		chunk = chunk.merge(businesses[['business_id', 'postal_code']], on = 'business_id')
+		chunk = chunk[chunk.postal_code.isin(zip_list)]
+		for j in range(len(chunk.index)):
+			# Could optmize accessing each row? iterrow() was not working at the time
+			curr = chunk.iloc[j]
+			if curr.user_id in output_dict.keys():
+				output_dict[curr.user_id][curr.business_id] = int(curr.stars)
+				rating += 1
+			else:
+				output_dict[curr.user_id] = {curr.business_id : int(curr.stars)}
+				user += 1
+				rating += 1
+	print(user, rating)
+
+	# with open(output_json, 'w') as f:
+	# 	json_dump = json.dumps(output_dict)
+	# 	f.write(json_dump)
+	# 	f.close()
 
 def main():
-	# utility_matrix('../yelp_review.csv', 'yelp_utility_matrix_stuttgart.csv')
+	yelp_utility_matrix('../yelp_review.csv', 'yelp_utility_matrix_uc.json')
 	# aggregate_rewrite_matrix('yelp_utility_matrix_stuttgart.csv')
 
 if __name__ == '__main__' :
