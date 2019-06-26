@@ -8,6 +8,7 @@ import numpy as np
 import math
 
 #PEARSON CORRELATION FUNCTION
+#Parameters: two numpy 1-dimensional arrays (item/user vectors)
 def pearson(col1, col2):
     #Finds corated values by checking each element of each array for non-NaN status and performing AND on the results
     col1_rated = np.logical_not(np.isnan(col1))
@@ -42,3 +43,21 @@ def pearson(col1, col2):
         
     corr = sum_product_distances_from_mean / ((math.sqrt(sum_squared_col1_distances_from_mean) * math.sqrt(sum_squared_col2_distances_from_mean)) + 0.0000001)
     return corr    
+
+#Parameters: two numpy 1-dimensional arrays (item/user vectors)
+def cosine(col1, col2):
+    #NANs are the problem
+    '''
+    dot_col1_col2 = np.sum(col1 * col2)
+    norm_col1 = math.sqrt(np.sum(np.power(col1, [2])))
+    norm_col2 = math.sqrt(np.sum(np.power(col2, [2])))
+    return dot_col1_col2 / (norm_col1 * norm_col2)
+    '''
+    return np.dot(col1, col2) / (np.linalg.norm(col1, ord=2) * np.linalg.norm(col2, ord=2))
+
+def main():
+    #only for testing formulas
+    print(cosine(np.array([1,2,3,4]), np.array([1,2,3,9])))
+
+if __name__ == '__main__':
+    main()

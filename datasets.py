@@ -50,7 +50,8 @@ class Dataset:
             elif sim == 'cosine':
                     self.sm_df = self.build_ml_cosine_sm(sm_file)
         if data == 'yelp':
-            self.og_df = self.build_yelp_og_df(og_file, data='yelp') #function returns df
+            self.og_df = self.build_yelp_og_df(og_file, 
+                                               data='yelp') #function returns df
             if algo == 'item':
                 self.um_df = self.build_yelp_item_um(um_file) #function returns um df
             elif algo == 'user':
@@ -89,6 +90,7 @@ class Dataset:
             from item_similarity import ml_item_um_builder
             um_df = ml_item_um_builder.build(self.og_df, um_file)
         print('MovieLens item-based utility matrix ready (um_df)')
+        print(um_df)
         return um_df
             
         '''
@@ -153,6 +155,18 @@ class Dataset:
             import ml_pearson_sm_builder
             sm_df = ml_pearson_sm_builder.build(self.um_df, sm_file)
         print('MovieLens Pearson correlation-based similarity matrix ready (sm_df)')
+        return sm_df
+    
+    def build_ml_cosine_sm(self, sm_file):
+        sm_df = None
+        try:
+            sm_df = pd.read_csv(sm_file, index_col = 0)
+        except FileNotFoundError:
+            print('Building MovieLens cosine similarity matrix for the \'' + self.name + '\' dataset')
+            import ml_cosine_sm_builder
+            sm_df = ml_cosine_sm_builder.build(self.um_df, sm_file)
+        print('MovieLens cosine similarity matrix ready (sm_df)')
+        print(sm_df)
         return sm_df
     
             
