@@ -3,7 +3,7 @@
 # The resulting .json is a dictionary of dictionaries
 # This one has items as the main key to a dictionary that has users as the keys to the rating
 # Minh N. and Chen T.
-# 2019.06.19, updated 6.25
+# 2019.06.19, updated 06.25
 
 import pandas as pd
 import numpy as np
@@ -37,7 +37,6 @@ def yelp_utility_matrix(df, output_json, json_file_path = 'urbana_zip.json'):
 		json_dump = json.dumps(output_dict)
 		f.write(json_dump)
 		f.close()
-	print(json_dump)
 	return json_dump
 
 def main():

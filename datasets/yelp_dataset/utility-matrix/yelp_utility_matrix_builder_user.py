@@ -9,11 +9,6 @@ import pandas as pd
 import numpy as np
 import json
 
-# main()
-# 	df = f1(path) returns df
-# 	builder(df, output path)
-
-
 def yelp_utility_matrix(df, output_json, json_file_path = 'urbana_zip.json'):
 	with open(json_file_path, 'r') as f:
 		try:
@@ -23,8 +18,7 @@ def yelp_utility_matrix(df, output_json, json_file_path = 'urbana_zip.json'):
 			return
 	businesses = pd.read_csv('../yelp_business.csv')
 	output_dict = {}
-	for i in range(100):
-		chunk = df.get_chunk(500)
+	for chunk in df:
 		chunk = chunk.merge(businesses[['business_id', 'postal_code']], on = 'business_id')
 		chunk = chunk[chunk.postal_code.isin(zip_list)]
 		for j in range(len(chunk.index)):
@@ -41,9 +35,8 @@ def yelp_utility_matrix(df, output_json, json_file_path = 'urbana_zip.json'):
 	return json_dump
 
 def main():
-	df = pd.read_csv('../yelp_review.csv', iterator = True)
+	df = pd.read_csv('../yelp_review.csv', chunksize = 500)
 	yelp_utility_matrix(df, 'yelp_utility_matrix_uc_user.json')
-	# aggregate_rewrite_matrix('yelp_utility_matrix_stuttgart.csv')
 
 if __name__ == '__main__' :
 	main()
