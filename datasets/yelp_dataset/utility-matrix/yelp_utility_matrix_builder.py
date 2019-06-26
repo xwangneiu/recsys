@@ -37,12 +37,11 @@ def yelp_utility_matrix(data_csv, output_json, json_file_path = 'urbana_zip.json
 				output_dict[curr.user_id] = {curr.business_id : int(curr.stars)}
 				user += 1
 				rating += 1
-	print(user, rating)
 
-	# with open(output_json, 'w') as f:
-	# 	json_dump = json.dumps(output_dict)
-	# 	f.write(json_dump)
-	# 	f.close()
+	with open(output_json, 'w') as f:
+		json_dump = json.dumps(output_dict)
+		f.write(json_dump)
+		f.close()
 
 def main():
 	yelp_utility_matrix('../yelp_review.csv', 'yelp_utility_matrix_uc.json')
