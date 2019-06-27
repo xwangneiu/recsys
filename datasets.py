@@ -93,7 +93,7 @@ class Dataset:
             from item_similarity import ml_item_um_builder
             um_df = ml_item_um_builder.build(self.og_df, um_file)
         print('MovieLens item-based utility matrix ready (um_df)')
-        print(um_df)
+        #print(um_df)
         return um_df
             
         '''
@@ -169,7 +169,7 @@ class Dataset:
             import ml_cosine_sm_builder
             sm_df = ml_cosine_sm_builder.build(self.um_df, sm_file)
         print('MovieLens cosine similarity matrix ready (sm_df)')
-        print(sm_df)
+        #print(sm_df)
         return sm_df
     
             
@@ -366,8 +366,7 @@ def load_ml_u1():
         'item_similarity/ml_u1_item_cosine_sim.csv', sim='cosine') #similarity matrix
     ml_u1.test = TestSet(
         'u1 test set',                                              #name
-        'datasets/ml-100k/u1.test')                                 #original source
-        #prediction_file='item_similarity/ml_u1_2019_06_24_test_results.csv' #test results
+        'datasets/ml-100k/u1.test', prediction_file='item_similarity/ml_u1_2019_06_24_test_results.csv') #test results
     return ml_u1
     
 def load_yelp_stut():
@@ -379,7 +378,8 @@ def load_yelp_stut():
     print(yelp_stut.user_pearson_sim_df)
     
 def main():
-    load_ml_u1()
+    ml_u1 = load_ml_u1()
+    print(ml_u1.test.predictions_df)
 
 if __name__ == '__main__':
     main()
