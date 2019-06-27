@@ -67,7 +67,7 @@ def user_similarity_pearson(um_dict, output_json):
 
 					#updating to the necessary pre-components
 					corrated_i = [i - average_i for i in corrated_i]
-					corrated_i = [j - average_j for j in corrated_j]
+					corrated_j = [j - average_j for j in corrated_j]
 
 					numerator = sum((i * j for i, j in zip(corrated_i, corrated_j)))
 					denomiator = math.sqrt(sum((i * i for i in corrated_i))) * math.sqrt(sum((j * j for j in corrated_j)))
