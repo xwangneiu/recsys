@@ -18,18 +18,18 @@ import datasets
 def calculate_mae(dataframe):
     
     dataset = dataframe.to_numpy()
-    print(dataset)
     datasetcov = dataset[~np.isnan(dataset).any(axis=1)]
-    print(datasetcov)
     a = datasetcov[:,2]
     b = datasetcov[:,3]
     
     mae = sum(abs((a-b))/len(datasetcov))
-    
+    rmse = math.sqrt((sum((a-b)**2))/len(datasetcov))
+    print(rmse)
     return mae
     #dataframe has 'user', 'item', 'observed' columns
     #returns one number, a float
     
+
 def main():
     #load MovieLens u1 dataset
     #had to change directory, so we can run the called function in recsys/ rather than recsys/item_similarity/
