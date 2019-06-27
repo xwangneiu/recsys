@@ -6,6 +6,7 @@ Created on Tue Jun 25 17:41:58 2019
 """
 import numpy as np
 import math
+import timeit
 
 #PEARSON CORRELATION FUNCTION
 #Parameters: two numpy 1-dimensional arrays (item/user vectors)
@@ -63,27 +64,38 @@ def pearson(col1, col2):
     sum_squared_col1_distances_from_mean = 0
     sum_squared_col2_distances_from_mean = 0
     #get mean values of columns before removing non-corated user ratings
+    '''
     def remove_non_corated(col):
         for i in range(len(col)):
             if corated[i] == False:
                 col[i] = math.nan
         return col
-    col1 = remove_non_corated(col1)
-    col2 = remove_non_corated(col2)
+    '''
+    #remove non-corated values by multiplying them times corated (n * True = n, n * False = 0)
+    col1 = col1 * corated
+    col2 = col2 * corated
     col1_mean = np.nanmean(col1) #mean excluding nans
     col2_mean = np.nanmean(col2)
-    
-    
+    '''
+    def final_calc(i):
+        col1_distance_from_mean = col1[i] - col1_mean
+        col2_distance_from_mean = col2[i] - col2_mean
+        sum_product_distances_from_mean += col1_distance_from_mean * col2_distance_from_mean
+        #denominator of formula
+        sum_squared_col1_distances_from_mean += (col1_distance_from_mean) ** 2
+        sum_squared_col2_distances_from_mean += (col2_distance_from_mean) ** 2
+    [final_calc(i) for i in col1 if corated[i]]
+    '''    
     for i in range(len(col1)):
-
         if corated[i]:
             #numerator of formula
             col1_distance_from_mean = col1[i] - col1_mean
             col2_distance_from_mean = col2[i] - col2_mean
             sum_product_distances_from_mean += col1_distance_from_mean * col2_distance_from_mean
             #denominator of formula
-            sum_squared_col1_distances_from_mean += (col1[i] - col1_mean) ** 2
-            sum_squared_col2_distances_from_mean += (col2[i] - col2_mean) ** 2
+            sum_squared_col1_distances_from_mean += (col1_distance_from_mean) ** 2
+            sum_squared_col2_distances_from_mean += (col2_distance_from_mean) ** 2
+            
         
     corr = sum_product_distances_from_mean / ((math.sqrt(sum_squared_col1_distances_from_mean) * math.sqrt(sum_squared_col2_distances_from_mean)) + 0.0000001)
     return corr        
@@ -102,9 +114,58 @@ def cosine(col1, col2):
     return np.dot(col1, col2) / (np.linalg.norm(col1, ord=2) * np.linalg.norm(col2, ord=2))
     
 def main():
+    t = timeit.Timer(stmt='''
+col1 = col1 * corated
+col2 = col2 * corated
+col1_mean = np.nanmean(col1) #mean excluding nans
+col2_mean = np.nanmean(col2)
+col1_mean = np.nanmean(col1) #mean excluding nans
+col2_mean = np.nanmean(col2)
+
+
+for i in range(len(col1)):
+
+    if corated[i]:
+        #numerator of formula
+        col1_distance_from_mean = col1[i] - col1_mean
+        col2_distance_from_mean = col2[i] - col2_mean
+        sum_product_distances_from_mean += col1_distance_from_mean * col2_distance_from_mean
+        #denominator of formula
+        sum_squared_col1_distances_from_mean += (col1[i] - col1_mean) ** 2
+        sum_squared_col2_distances_from_mean += (col2[i] - col2_mean) ** 2
+    
+corr = sum_product_distances_from_mean / ((math.sqrt(sum_squared_col1_distances_from_mean) * math.sqrt(sum_squared_col2_distances_from_mean)) + 0.0000001)
+sum_product_distances_from_mean = 0
+sum_squared_col1_distances_from_mean = 0
+sum_squared_col2_distances_from_mean = 0
+''', setup='''import numpy as np
+import math
+import datasets
+ml_u1 = datasets.load_ml_u1()
+col1 = ml_u1.training.um_df['1'].to_numpy()
+col2 = ml_u1.training.um_df['2'].to_numpy()
+col1_rated = np.logical_not(np.isnan(col1))
+#print(col1_rated[0:25])
+col2_rated = np.logical_not(np.isnan(col2))
+#print(col2_rated[0:25])
+corated = np.logical_and(col1_rated, col2_rated)
+#print(corated[0:25])
+#print(col1_rated[0:25])
+
+#if there are no corated values, return 0 to save time
+sum_product_distances_from_mean = 0
+sum_squared_col1_distances_from_mean = 0
+sum_squared_col2_distances_from_mean = 0
+def remove_non_corated(col):
+    for i in range(len(col)):
+        if corated[i] == False:
+            col[i] = math.nan
+    return col
+    ''')
+    tests = 500
+    print(str(t.timeit(number=tests) * (1000/tests)) + ' ms per operation')
     #only for testing formulas
-    print(cosine(np.array([1,2,math.nan,4,5]), np.array([1,math.nan,3,9,10])))
-    print(cosine(np.array([1,2,math.nan,4,5]), np.array([1,math.nan,3,9,10])))
+
 
 if __name__ == '__main__':
     main()

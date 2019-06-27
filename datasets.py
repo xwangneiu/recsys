@@ -388,7 +388,7 @@ def load_ml_u1():
     print("MAE: " + str(ml_u1.test.mae))
     print("RMSE: " + str(ml_u1.test.rmse))
     return ml_u1
-
+    
 def load_ml_u1_for_wnmf():
     ml_u1 = TrainingAndTest('MovieLens u1 training/test sets')
     ml_u1.training = Dataset(
@@ -408,12 +408,12 @@ def load_ml_u1_item_pearson():
     ml_u1.training = Dataset(
         'u1 training set',                                          #name
         'datasets/ml-100k/u1.base',                                 #original source
-        'datasets/ml-100k/utility-matrix/ml_u1_item_utility.csv',   #utility matrix
-        'item_similarity/ml_u1_item_pearson_sim.csv') #similarity matrix
+        'datasets/ml-100k/utility-matrix/ml_u1_item_um.csv',   #utility matrix
+        'item_similarity/ml_u1_item_pearson_sm.csv') #similarity matrix
     ml_u1.test = TestSet(
         'u1 test set',                                              #name
         'datasets/ml-100k/u1.test')
-    ml_u1.build_predictions_df('item_similarity/ml_u1_2019_06_24_test_results.csv')
+    ml_u1.build_predictions_df('item_similarity/ml_u1_item_pearson_predictions.csv')
     ml_u1.test.calculate_mae()
     ml_u1.test.calculate_rmse()
     print("MAE: " + str(ml_u1.test.mae))
@@ -442,6 +442,7 @@ def load_yelp_stut():
     
 def main():
     ml_u1 = load_ml_u1()
+    #ml_u1 = load_ml_u1_item_pearson()
 
 if __name__ == '__main__':
     main()
