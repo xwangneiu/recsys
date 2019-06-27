@@ -4,66 +4,92 @@
 # This module builds two user similarity matrices from a Yelp utility matrix
 # The similiarities are cosine distance and Pearson Correlation
 
-import pandas as pd
-import numpy as np
+import json
 import math
 
-def transpose_matrix(data_csv):
-	df = pd.read_csv(data_csv, header=0, index_col=0)
-	df = df.transpose()
-	return df
+def dict_squared_sum(dict_to_sum):
+	summation = 0
+	for i in dict_to_sum.values():
+		summation += i * i
+	return summation
 
-def user_similarity_cosine(data_csv, output_csv):
-	input_df = transpose_matrix(data_csv)
-	output_series = []
-	for column_i in input_df:
-		
-		cos_corr_list = []
-		for column_j in input_df:
-			
-			dot_product = input_df[column_i].multiply(input_df[column_j])
-			cos_corr = dot_product.sum() / (math.sqrt(input_df[column_i].multiply(input_df[column_i]).sum()) * math.sqrt(input_df[column_j].multiply(input_df[column_j]).sum()))
-			
-			cos_corr_list.append(cos_corr)
+def user_similarity_cosine(um_dict, output_json):
+	sim_dict = {}
+	for key_i, value_i in um_dict.items():
+		curr_dict = {}
+		for key_j, value_j in um_dict.items():
+			if key_j in sim_dict:
+				if key_i in sim_dict[key_j]:
+					curr_dict[key_j] = sim_dict[key_j][key_i]
+				else:
+					continue	
+			else:
+				intersection = value_i.keys() & value_j.keys()
+				if len(intersection) == 0:
+					continue
+				else:
+					dot_product = 0
+					magnitudes = 0
+					# intersection = list(intersection)
+					for i in intersection:
+						dot_product += value_i[i] * value_j[i]
+					magnitudes = math.sqrt(dict_squared_sum(value_i)) * math.sqrt(dict_squared_sum(value_j))
+				curr_dict[key_j] = dot_product / magnitudes 
+		sim_dict[key_i] = curr_dict
+	with open(output_json, 'w') as f:
+		json_dump = json.dumps(sim_dict)
+		f.write(json_dump)
+		f.close()
+	return sim_dict
 
-		output_series.append(pd.Series(cos_corr_list))
-	output_df = pd.concat(output_series, axis = 1)
-	output_df.index = input_df.columns
-	output_df.columns = input_df.columns
-	output_df.to_csv(output_csv)
+def user_similarity_pearson(um_dict, output_json):
+	sim_dict = {}
+	for key_i, value_i in um_dict.items():
+		curr_dict = {}
+		for key_j, value_j in um_dict.items():
+			if key_j in sim_dict:
+				if key_i in sim_dict[key_j]:
+					curr_dict[key_j] = sim_dict[key_j][key_i]
+				else:
+					continue
+			else:
+				intersection = value_i.keys() & value_j.keys()
+				if len(intersection) == 0:
+					continue
+				else:
+					# Isolating corrated cases
+					corrated_i = [value_i[i] for i in intersection]
+					corrated_j = [value_j[j] for j in intersection]
 
-def user_similarity_pearson(data_csv, output_csv):
-	input_df = transpose_matrix(data_csv)
-	output_series = []
+					# Getting the average 
+					average_i = sum(corrated_i) / len(corrated_i)
+					average_j = sum(corrated_j) / len(corrated_j)
 
-	for column_i in input_df:
-		pearson_corr_list = []
-		for column_j in input_df:
+					#updating to the necessary pre-components
+					corrated_i = [i - average_i for i in corrated_i]
+					corrated_i = [j - average_j for j in corrated_j]
 
-			corated_i = (input_df[column_j] / input_df[column_j]) * input_df[column_i]
-			corated_j = (input_df[column_i] / input_df[column_i]) * input_df[column_j]
+					numerator = sum((i * j for i, j in zip(corrated_i, corrated_j)))
+					denomiator = math.sqrt(sum((i * i for i in corrated_i))) * math.sqrt(sum((j * j for j in corrated_j)))
+					if denomiator:
+						curr_dict[key_j] = numerator/denomiator
+					else: 
+						continue
+		sim_dict[key_i] = curr_dict
+	with open(output_json, 'w') as f:
+		json_dump = json.dumps(sim_dict)
+		f.write(json_dump)
+		f.close()
+	return sim_dict
 
-			mean_i = corated_i.mean()
-			mean_j = corated_j.mean()
-
-			calculated_i = corated_i - mean_i
-			calculated_j = corated_j - mean_j
-
-			numerator = (calculated_i*calculated_j).sum()
-			denumerator = math.sqrt((calculated_i * calculated_i).sum()) * math.sqrt((calculated_j * calculated_j).sum())
-
-			pearson_corr = numerator / denumerator
-
-			pearson_corr_list.append(pearson_corr)
-		output_series.append(pd.Series(pearson_corr_list))
-	output_df = pd.concat(output_series, axis = 1)
-	output_df.index = input_df.columns
-	output_df.columns = input_df.columns
-	output_df.to_csv(output_csv)
+def read_json(path):
+	f = open(path, 'r')
+	return json.load(f)
 
 def main():
-	user_similarity_cosine('../datasets/yelp_dataset/utility-matrix/yelp_utility_matrix_stuttgart.csv', 'yelp_user_sim_matrix_cosine.csv')
-	# user_similarity_pearson('../datasets/yelp_dataset/utility-matrix/yelp_utility_matrix_stuttgart.csv', 'yelp_user_sim_matrix_pearson.csv')
+	um_loaded = read_json('../datasets/yelp_dataset/utility-matrix/yelp_utility_matrix_uc_user.json')
+	# user_similarity_cosine(um_loaded, 'yelp_user_sim_matrix_cosine.json')
+	user_similarity_pearson(um_loaded, 'yelp_user_sim_matrix_pearson.json')
 
 if __name__ == '__main__':
 	main()
