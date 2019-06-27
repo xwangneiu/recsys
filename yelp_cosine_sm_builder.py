@@ -5,9 +5,11 @@ Created on Tue Jun 25 17:35:41 2019
 @author: jonathan
 """
 import numpy as np
-import pandas as pd
+import math
 import json
 import correlation
+import sys
+sys.path.insert(0, 'datasets/yelp_dataset/utility-matrix/')
 
 def build(um_dict, output_file):
     #um_df is a dict here
@@ -16,20 +18,15 @@ def build(um_dict, output_file):
     i_ratings = None
     j_ratings = None
     #ITERATE OVER DATA
+    user_num = 0
     for key_i, value_i in um_dict.items():
-        #inner_dict = um_dict[key_i]
+        print('Calculating user ' + str(user_num))
+        user_num += 1
         for key_j, value_j in um_dict.items():
             # for key i in um_data:
             # for key 
-            '''
-            print('key i : ' + str(key_i))
-            print('value i : ' + str(value_i))
-            print('key j : ' + str(key_j))
-            print('value j : ' + str(value_j))
-            '''
             i_items_set = set(value_i.keys())
             j_items_set = set(value_j.keys())
-            intersection = list(i_items_set & j_items_set)
             union = list(i_items_set | j_items_set)
             i_ratings = np.zeros(len(union), dtype=float)
             j_ratings = np.zeros(len(union), dtype=float)
@@ -42,9 +39,6 @@ def build(um_dict, output_file):
                     j_ratings[k] = value_j[union[k]]
                 else:
                     j_ratings[k] = math.nan
-            print('i_ratings: ' + str(i_ratings))
-            print('j_ratings: ' + str(j_ratings))
-            
             duplicate = False
             temp = None
             if key_j in similarity:
@@ -63,41 +57,17 @@ def build(um_dict, output_file):
                 else:
                     similarity[key_i] = {}
                     similarity[key_i][key_j] = correlation.cosine(i_ratings, j_ratings)
-    
+    with open(output_file, 'w') as f:
+        json_dump = json.dumps(similarity)
+        f.write(json_dump)
+        f.close()
     return similarity
 
-            
-                
-
-                
-    '''
-    for i in range(len(similarity_np)):
-        print("Calculating column " + str(i) + "...")
-        for j in range(len(similarity_np[i])):
-            if similarity_np[j][i] != 0:
-                similarity_np[i][j] = similarity_np[j][i]
-            else:
-                similarity_np[i][j] = correlation.cosine(utility_np[:, i], utility_np[:, j])
-    
-    #EXPORT COMPLETED SIMILARITY MATRIX
-    similarity = pd.DataFrame(similarity_np, index = um_df.columns, columns = um_df.columns)
-    similarity.to_csv(output_file)
-    '''
-def testd(um_dict):
-    for key, value in um_dict.items():
-        #inner_dict = um_dict[key_i]
-        for key_j, value_j in um_dict.items():
-            # for key i in um_data:
-            # for key 
-            print('key i : ' + str(key))
-            print('value i : ' + str(value.keys()))
-            print('key j : ' + str(key_j))
-            print('value j : ' + str(value_j.keys()))
-
 def main():
-    dict = {'user1': {'item1': 4.24, 'item2': 4.39, 'item4': 3.38, 'item9': 3.81},
-            'user2': {'item1': 5.00, 'item2': 3.31, 'item3': 3.19, 'item9': 3.18}}
-    print(build(dict, 'file.json'))
+    utility = None
+    with open('datasets/yelp_dataset/utility-matrix/yelp_utility_matrix_uc_user.json', 'r') as f:
+        utility = json.load(f)
+    build(utility, 'yelp_user_cosine_sm.json')
     #testd(dict)
     
 if __name__ == '__main__':
