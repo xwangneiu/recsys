@@ -12,15 +12,15 @@ import sys
 sys.path.insert(0, '../')
 import os
 import datasets
+import time
 
-def predict(dataset, users_and_items):
+def predict(dataset, dest_filename):
     #similarity of all items to active item. INDICES OK
     
-    sim = dataset.sm_df.to_numpy()
-    utility = dataset.um_df.to_numpy()
-    results = pd.DataFrame(users_and_items)
-    users_and_items = users_and_items.to_numpy()
-    print(users_and_items)
+    sim = dataset.training.sm_df.to_numpy()
+    utility = dataset.training.um_df.to_numpy()
+    results = pd.DataFrame(dataset.test.og_df)
+    users_and_items = dataset.test.user_item_pairs_df.to_numpy()
     predictions = np.zeros(len(users_and_items), dtype=float)
     
     #this loop produces a prediction for each user/item in the users_and_items_np list
@@ -75,21 +75,23 @@ def predict(dataset, users_and_items):
         
         '''
         print('Top 30 similar:')
-        
         print(top_30_sim_items)
+        time.sleep(3)
         print('Top 30 ratings:' )
         print(ratings_top_30)
+        time.sleep(3)
         print('Top 30 ratings, weighted:' )
         print(weighted_top_30)
+        time.sleep(3)
         print('PREDICTION for user ' + str(user + 1) + ' on item ' + str(item + 1) + ': ' + str(prediction))
+        time.sleep(5)
         '''
         predictions[i] = prediction
         predictions = pd.Series(predictions)
         
     results['prediction'] = predictions
-    
-    print(results)
-    return predictions
+    results.to_csv(dest_filename)
+    return results
 
 #adds a prediction to a test set object
     
@@ -101,8 +103,10 @@ def main():
     #ml_100k = datasets.load_ml_100k()
     ml_u1 = datasets.load_ml_u1()
     os.chdir('item_similarity')
-    prediction = predict(ml_u1.training, ml_u1.test.user_item_pairs_df)
-    print(ml_u1.test.predictions_df)
+    prediction = predict(ml_u1, 'filename')
+    print(prediction)
+    
+    #print(ml_u1.test.predictions_df)
     #ml_u1.test.save_test_results('ml_u1_2019_06_24_test_results.csv')
     
     

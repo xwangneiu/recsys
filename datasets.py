@@ -250,6 +250,8 @@ class TestSet(Dataset):
     user_item_pairs_df = None
     predictions_df = None
     error_df = None
+    mae = None
+    rmse = None
 
     def build_ml_og_df(self, og_file):
         try:
@@ -276,19 +278,6 @@ class TestSet(Dataset):
     #NON-CONSTRUCTOR-BASED METHODS
     #takes a CSV
     #conventions do not apply to this
-    def build_predictions_df(self, csv=None, predictions=None):
-        predictions_df = None
-        if csv is not None:
-            predictions_df = pd.read_csv(csv, index_col=0)
-            predictions_df['observed'] = self.og_df['observed']
-            print('Prediction results from test set loaded from file (test.predictions_df)')
-        elif predictions is not None:
-            predictions_df = self.og_df
-            predictions_df['prediction'] = predictions
-            print('Prediction results ready (test.predictions_df)')
-        else:
-            print('No prediction file loaded; currently, predictions_df = None')
-        return predictions_df
             
     
     def build_error_df(self):
@@ -297,6 +286,17 @@ class TestSet(Dataset):
     
     def save_test_results(self, dest_filename):
         self.predictions_df.to_csv(dest_filename)
+        
+    
+    def calculate_mae(self):
+        from item_similarity import prediction_error_mae as mae
+        self.mae = mae.calculate_mae(self.predictions_df)
+        return self.mae
+
+    def calculate_rmse(self):
+        from item_similarity import prediction_error_rmse as rmse
+        self.rmse = rmse.calculate_rmse(self.predictions_df)
+        return self.rmse
     
     #TestSet CONSTRUCTOR
     def __init__(self, name, og_file, data="ml", prediction_file=None):
@@ -317,8 +317,23 @@ class TrainingAndTest:
     training = None
     test = None
     
+    def build_predictions_df(self, predictions_file):
+        predictions_df = None
+        try:
+            predictions_df = pd.read_csv(predictions_file, index_col=0)
+            print('Prediction results from test set loaded from file (test.predictions_df)')
+        except FileNotFoundError:
+            print('Running predictor on given training set')
+            from item_similarity import ml_predictor
+            predictions_df = ml_predictor.predict(self, predictions_file)
+            print('Predictions saved at ' + predictions_file)
+        self.test.predictions_df = predictions_df
+        print('Prediction results ready (test.predictions_df)')
+        print(predictions_df)
+        return predictions_df
+    
     #CONSTRUCTOR
-    def __init__(self, name, ):
+    def __init__(self, name):
         self.name = name
         print("Temporary fix: Please initialize the .training and .test objects using their own constructors")
         '''
@@ -363,11 +378,59 @@ def load_ml_u1():
         'u1 training set',                                          #name
         'datasets/ml-100k/u1.base',                                 #original source
         'datasets/ml-100k/utility-matrix/ml_u1_item_utility.csv',   #utility matrix
-        'item_similarity/ml_u1_item_cosine_sim.csv', sim='cosine') #similarity matrix
+        'item_similarity/ml_u1_item_pearson_sim.csv') #similarity matrix
     ml_u1.test = TestSet(
         'u1 test set',                                              #name
-        'datasets/ml-100k/u1.test', prediction_file='item_similarity/ml_u1_2019_06_24_test_results.csv') #test results
+        'datasets/ml-100k/u1.test')
+    ml_u1.build_predictions_df('item_similarity/ml_u1_2019_06_24_test_results.csv')
+    ml_u1.test.calculate_mae()
+    ml_u1.test.calculate_rmse()
+    print("MAE: " + str(ml_u1.test.mae))
+    print("RMSE: " + str(ml_u1.test.rmse))
     return ml_u1
+
+def load_ml_u1_for_wnmf():
+    ml_u1 = TrainingAndTest('MovieLens u1 training/test sets')
+    ml_u1.training = Dataset(
+        'u1 training set',                                          #name
+        'datasets/ml-100k/u1.base',                                 #original source
+        'datasets/ml-100k/utility-matrix/ml_u1_item_utility.csv',   #utility matrix
+        'item_similarity/ml_u1_item_pearson_sim.csv') #similarity matrix
+    ml_u1.test = TestSet(
+        'u1 test set',                                              #name
+        'datasets/ml-100k/u1.test')
+    return ml_u1
+
+    #MovieLens 100k u1 test/training set
+def load_ml_u1_item_pearson():
+    #NEED ONLY FUNCTIONS TO BE BUILD FUNCTIONS THAT TAKE A CSV
+    ml_u1 = TrainingAndTest('MovieLens u1 training/test sets')
+    ml_u1.training = Dataset(
+        'u1 training set',                                          #name
+        'datasets/ml-100k/u1.base',                                 #original source
+        'datasets/ml-100k/utility-matrix/ml_u1_item_utility.csv',   #utility matrix
+        'item_similarity/ml_u1_item_pearson_sim.csv') #similarity matrix
+    ml_u1.test = TestSet(
+        'u1 test set',                                              #name
+        'datasets/ml-100k/u1.test')
+    ml_u1.build_predictions_df('item_similarity/ml_u1_2019_06_24_test_results.csv')
+    ml_u1.test.calculate_mae()
+    ml_u1.test.calculate_rmse()
+    print("MAE: " + str(ml_u1.test.mae))
+    print("RMSE: " + str(ml_u1.test.rmse))
+    return ml_u1
+
+def load_ml_u2():
+    ml_u2 = TrainingAndTest('MovieLens u2 training/test sets')
+    ml_u2.training = Dataset(
+        'u2 training set',                                          #name
+        'datasets/ml-100k/u2.base',                                 #original source
+        'datasets/ml-100k/utility-matrix/ml_u2_item_utility.csv',   #utility matrix
+        'item_similarity/ml_u2_item_cosine_sim.csv', sim='cosine') #similarity matrix
+    ml_u2.test = TestSet(
+        'u2 test set',                                              #name
+        'datasets/ml-100k/u2.test')#, prediction_file='item_similarity/ml_u2_2019_06_24_test_results.csv') #test results
+    return ml_u2
     
 def load_yelp_stut():
     yelp_stut = Dataset("Yelp Stuttgart, Germany Reviews")
@@ -379,7 +442,6 @@ def load_yelp_stut():
     
 def main():
     ml_u1 = load_ml_u1()
-    print(ml_u1.test.predictions_df)
 
 if __name__ == '__main__':
     main()
