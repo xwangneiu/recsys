@@ -32,7 +32,7 @@ def yelp_utility_matrix(df, output_json, json_file_path = 'urbana_zip.json'):
 		json_dump = json.dumps(output_dict)
 		f.write(json_dump)
 		f.close()
-	return json_dump
+	return output_dict
 
 def main():
 	df = pd.read_csv('../yelp_review.csv', chunksize = 500)

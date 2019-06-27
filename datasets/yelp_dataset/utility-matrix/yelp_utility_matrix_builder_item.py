@@ -9,11 +9,6 @@ import pandas as pd
 import numpy as np
 import json
 
-# main()
-# 	df = f1(path) returns df
-# 	builder(df, output path)
-
-
 def yelp_utility_matrix(df, output_json, json_file_path = 'urbana_zip.json'):
 	with open(json_file_path, 'r') as f:
 		try:
@@ -37,12 +32,11 @@ def yelp_utility_matrix(df, output_json, json_file_path = 'urbana_zip.json'):
 		json_dump = json.dumps(output_dict)
 		f.write(json_dump)
 		f.close()
-	return json_dump
+	return output_dict
 
 def main():
 	df = pd.read_csv('../yelp_review.csv', chunksize = 500)
 	yelp_utility_matrix(df, 'yelp_utility_matrix_uc_item.json')
-	# aggregate_rewrite_matrix('yelp_utility_matrix_stuttgart.csv')
 
 if __name__ == '__main__' :
 	main()
