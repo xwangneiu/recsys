@@ -14,8 +14,8 @@ Objects are an easy way to bundle them together.
 '''
 
 import pandas as pd
-from item_similarity import item_predictor
 import json
+import correlation
 import sys
 sys.path.insert(0, 'datasets/yelp_dataset/utility-matrix/')
 
@@ -37,7 +37,7 @@ class Dataset:
     #CONSTRUCTOR
     #og - original data; um - utility matrix; sm - similarity matrix
     #Keyword Arguments: data=ml,yelp; algo=item,user,wnmf; sim=pearson,cosine,wnmf
-    def __init__(self, name, og_file, um_file, sm_file, data='ml', algo='item', sim='pearson'):
+    def __init__(self, name, og_file, um_file, sm_file, data, algo, sim):
         self.name = name
         print(name + ' is being prepared...')
         if data == 'ml':
@@ -46,6 +46,7 @@ class Dataset:
                 self.um_df = self.build_ml_item_um(um_file) #function returns um df
             elif algo == 'user':
                 self.um_df = self.build_ml_user_um(um_file) #function returns um df
+                print(self.um_df)
             elif algo == 'wnmf':
                 self.um_df = self.build_ml_wnmf_um(um_file)
             if sim == 'pearson':
@@ -76,10 +77,11 @@ class Dataset:
             og_df = pd.read_csv(og_file, sep='\t', names=['user', 'movie', 'rating', 'timestamp'])
             del og_df['timestamp']
             print("Original MovieLens data file ready (og_df)")
+            print("og_df")
+            print(og_df)
             return og_df
         except FileNotFoundError:
-            print("build_ml_og_df error: Original data file not at location given")    
-            
+            print("build_ml_og_df error: Original data file not at location given")
     #ITEM-BASED METHODS
     
     #builds item-based utility matrix for data file at specified filename #GOOD 6/25
@@ -214,9 +216,10 @@ class Dataset:
             um_df = pd.read_csv(um_file, index_col = 0)
         except FileNotFoundError:
             print('Building MovieLens user-based utility matrix for the \'' + self.name + '\' dataset')
-            from user_similarity import ml_user_um_builder
-            um_df = ml_user_um_builder.build(self.og_df, um_file)
+            from item_similarity import ml_item_um_builder
+            um_df = ml_item_um_builder.build(self.og_df, um_file)
         print('MovieLens user-based utility matrix ready')
+        um_df = um_df.T
         return um_df
     '''
     #NEED TO FINISH THIS
@@ -317,15 +320,30 @@ class TrainingAndTest:
     training = None
     test = None
     
-    def build_predictions_df(self, predictions_file):
+    def build_ml_item_predictions_df(self, predictions_file):
         predictions_df = None
         try:
             predictions_df = pd.read_csv(predictions_file, index_col=0)
             print('Prediction results from test set loaded from file (test.predictions_df)')
         except FileNotFoundError:
             print('Running predictor on given training set')
-            from item_similarity import ml_predictor
-            predictions_df = ml_predictor.predict(self, predictions_file)
+            from item_similarity import ml_item_predictor as mip
+            predictions_df = mip.predict(self, predictions_file)
+            print('Predictions saved at ' + predictions_file)
+        self.test.predictions_df = predictions_df
+        print('Prediction results ready (test.predictions_df)')
+        print(predictions_df)
+        return predictions_df
+    
+    def build_ml_user_predictions_df(self, predictions_file):
+        predictions_df = None
+        try:
+            predictions_df = pd.read_csv(predictions_file, index_col=0)
+            print('Prediction results from test set loaded from file (test.predictions_df)')
+        except FileNotFoundError:
+            print('Running predictor on given training set')
+            from user_similarity import ml_user_predictor as mup
+            predictions_df = mup.predict(self, predictions_file)
             print('Predictions saved at ' + predictions_file)
         self.test.predictions_df = predictions_df
         print('Prediction results ready (test.predictions_df)')
@@ -372,22 +390,7 @@ def load_ml_100k():
 
     #MovieLens 100k u1 test/training set
 def load_ml_u1():
-    #NEED ONLY FUNCTIONS TO BE BUILD FUNCTIONS THAT TAKE A CSV
-    ml_u1 = TrainingAndTest('MovieLens u1 training/test sets')
-    ml_u1.training = Dataset(
-        'u1 training set',                                          #name
-        'datasets/ml-100k/u1.base',                                 #original source
-        'datasets/ml-100k/utility-matrix/ml_u1_item_utility.csv',   #utility matrix
-        'item_similarity/ml_u1_item_pearson_sim.csv') #similarity matrix
-    ml_u1.test = TestSet(
-        'u1 test set',                                              #name
-        'datasets/ml-100k/u1.test')
-    ml_u1.build_predictions_df('item_similarity/ml_u1_2019_06_24_test_results.csv')
-    ml_u1.test.calculate_mae()
-    ml_u1.test.calculate_rmse()
-    print("MAE: " + str(ml_u1.test.mae))
-    print("RMSE: " + str(ml_u1.test.rmse))
-    return ml_u1
+    return ml_u1_item_pearson()
     
 def load_ml_u1_for_wnmf():
     ml_u1 = TrainingAndTest('MovieLens u1 training/test sets')
@@ -395,7 +398,10 @@ def load_ml_u1_for_wnmf():
         'u1 training set',                                          #name
         'datasets/ml-100k/u1.base',                                 #original source
         'datasets/ml-100k/utility-matrix/ml_u1_item_utility.csv',   #utility matrix
-        'item_similarity/ml_u1_item_pearson_sim.csv') #similarity matrix
+        'item_similarity/ml_u1_item_pearson_sim.csv',               #similarity matrix
+        'ml',                                                   #data source
+        'item',                                                 #algorithm
+        'pearson')                                              #correlation
     ml_u1.test = TestSet(
         'u1 test set',                                              #name
         'datasets/ml-100k/u1.test')
@@ -406,32 +412,360 @@ def load_ml_u1_item_pearson():
     #NEED ONLY FUNCTIONS TO BE BUILD FUNCTIONS THAT TAKE A CSV
     ml_u1 = TrainingAndTest('MovieLens u1 training/test sets')
     ml_u1.training = Dataset(
-        'u1 training set',                                          #name
-        'datasets/ml-100k/u1.base',                                 #original source
-        'datasets/ml-100k/utility-matrix/ml_u1_item_um.csv',   #utility matrix
-        'item_similarity/ml_u1_item_pearson_sm.csv') #similarity matrix
+        'u1 training set',                                      #name
+        'datasets/ml-100k/u1.base',                             #original source
+        'datasets/ml-100k/utility-matrix/ml_u1_item_um.csv',    #utility matrix
+        'item_similarity/ml_u1_item_corr_sm.csv',               #similarity matrix
+        'ml',                                                   #data source
+        'item',                                                 #algorithm
+        'pearson')                                              #correlation
+    print("ml_u1.training UM")
+    print(ml_u1.training.um_df)
+    print("ml_u1.training SM")
+    print(ml_u1.training.sm_df)
     ml_u1.test = TestSet(
-        'u1 test set',                                              #name
+        'u1 test set',                                          #name
         'datasets/ml-100k/u1.test')
-    ml_u1.build_predictions_df('item_similarity/ml_u1_item_pearson_predictions.csv')
+    ml_u1.build_ml_item_predictions_df('item_similarity/ml_u1_item_pearson_predictions.csv')
+    print("ml_u1.test.og_df")
+    print(ml_u1.test.og_df)
+    print("ml_u1.test.predictions_df")
+    print(ml_u1.test.predictions_df)
     ml_u1.test.calculate_mae()
     ml_u1.test.calculate_rmse()
     print("MAE: " + str(ml_u1.test.mae))
     print("RMSE: " + str(ml_u1.test.rmse))
     return ml_u1
 
-def load_ml_u2():
+def load_ml_u1_user_pearson():
+    #NEED ONLY FUNCTIONS TO BE BUILD FUNCTIONS THAT TAKE A CSV
+    ml_u1 = TrainingAndTest('MovieLens u1 training/test sets')
+    ml_u1.training = Dataset(
+        'u1 training set',                                      #name
+        'datasets/ml-100k/u1.base',                             #original source
+        'datasets/ml-100k/utility-matrix/ml_u1_user_um.csv',    #utility matrix
+        'user_similarity/ml_u1_user_pearson_sm.csv',            #similarity matrix
+        'ml',                                                   #data source
+        'user',                                                 #algorithm
+        'pearson')                                              #correlation
+    print("ml_u1.training UM")
+    print(ml_u1.training.um_df)
+    print("ml_u1.training SM")
+    print(ml_u1.training.sm_df)
+    ml_u1.test = TestSet(
+        'u1 test set',                                          #name
+        'datasets/ml-100k/u1.test')
+
+    ml_u1.build_ml_user_predictions_df('user_similarity/ml_u1_user_pearson_predictions.csv')
+    #print("ml_u1.test.og_df")
+    print(ml_u1.test.og_df)
+    
+    print("ml_u1.test.predictions_df")
+    print(ml_u1.test.predictions_df)
+    
+    ml_u1.test.calculate_mae()
+    ml_u1.test.calculate_rmse()
+    print("MAE: " + str(ml_u1.test.mae))
+    print("RMSE: " + str(ml_u1.test.rmse))
+    return ml_u1
+
+def load_ml_u1_user_cosine():
+    #NEED ONLY FUNCTIONS TO BE BUILD FUNCTIONS THAT TAKE A CSV
+    ml_u1 = TrainingAndTest('MovieLens u1 training/test sets')
+    ml_u1.training = Dataset(
+        'u1 training set',                                      #name
+        'datasets/ml-100k/u1.base',                             #original source
+        'datasets/ml-100k/utility-matrix/ml_u1_user_um.csv',    #utility matrix
+        'user_similarity/ml_u1_user_cosine_sm.csv',            #similarity matrix
+        'ml',                                                   #data source
+        'user',                                                 #algorithm
+        'cosine')                                               #correlation
+    ml_u1.test = TestSet(
+        'u1 test set',                                          #name
+        'datasets/ml-100k/u1.test')
+
+    ml_u1.build_ml_user_predictions_df('user_similarity/ml_u1_user_cosine_predictions.csv')
+    #print("ml_u1.test.og_df")
+    print("ml_u1.test.predictions_df")
+    print(ml_u1.test.predictions_df)
+    ml_u1.test.calculate_mae()
+    ml_u1.test.calculate_rmse()
+    print("MAE: " + str(ml_u1.test.mae))
+    print("RMSE: " + str(ml_u1.test.rmse))
+    return ml_u1
+
+def load_ml_u2_user_pearson():
+    #NEED ONLY FUNCTIONS TO BE BUILD FUNCTIONS THAT TAKE A CSV
     ml_u2 = TrainingAndTest('MovieLens u2 training/test sets')
     ml_u2.training = Dataset(
-        'u2 training set',                                          #name
-        'datasets/ml-100k/u2.base',                                 #original source
-        'datasets/ml-100k/utility-matrix/ml_u2_item_utility.csv',   #utility matrix
-        'item_similarity/ml_u2_item_cosine_sim.csv', sim='cosine') #similarity matrix
+        'u2 training set',                                      #name
+        'datasets/ml-100k/u2.base',                             #original source
+        'datasets/ml-100k/utility-matrix/ml_u2_user_um.csv',    #utility matrix
+        'user_similarity/ml_u2_user_pearson_sm.csv',            #similarity matrix
+        'ml',                                                   #data source
+        'user',                                                 #algorithm
+        'pearson')                                              #correlation
+    print("ml_u2.training UM")
+    print(ml_u2.training.um_df)
+    print("ml_u2.training SM")
+    print(ml_u2.training.sm_df)
     ml_u2.test = TestSet(
-        'u2 test set',                                              #name
-        'datasets/ml-100k/u2.test')#, prediction_file='item_similarity/ml_u2_2019_06_24_test_results.csv') #test results
-    return ml_u2
+        'u2 test set',                                          #name
+        'datasets/ml-100k/u2.test')
+
+    ml_u2.build_ml_user_predictions_df('user_similarity/ml_u2_user_pearson_predictions.csv')
+    #print("ml_u2.test.og_df")
+    print(ml_u2.test.og_df)
     
+    print("ml_u2.test.predictions_df")
+    print(ml_u2.test.predictions_df)
+    
+    ml_u2.test.calculate_mae()
+    ml_u2.test.calculate_rmse()
+    print("MAE: " + str(ml_u2.test.mae))
+    print("RMSE: " + str(ml_u2.test.rmse))
+    return ml_u2
+
+def load_ml_u2_user_cosine():
+    #NEED ONLY FUNCTIONS TO BE BUILD FUNCTIONS THAT TAKE A CSV
+    ml_u2 = TrainingAndTest('MovieLens u2 training/test sets')
+    ml_u2.training = Dataset(
+        'u2 training set',                                      #name
+        'datasets/ml-100k/u2.base',                             #original source
+        'datasets/ml-100k/utility-matrix/ml_u2_user_um.csv',    #utility matrix
+        'user_similarity/ml_u2_user_cosine_sm.csv',            #similarity matrix
+        'ml',                                                   #data source
+        'user',                                                 #algorithm
+        'cosine')                                               #correlation
+    ml_u2.test = TestSet(
+        'u2 test set',                                          #name
+        'datasets/ml-100k/u2.test')
+
+    ml_u2.build_ml_user_predictions_df('user_similarity/ml_u2_user_cosine_predictions.csv')
+    #print("ml_u2.test.og_df")
+    print("ml_u2.test.predictions_df")
+    print(ml_u2.test.predictions_df)
+    ml_u2.test.calculate_mae()
+    ml_u2.test.calculate_rmse()
+    print("MAE: " + str(ml_u2.test.mae))
+    print("RMSE: " + str(ml_u2.test.rmse))
+    return ml_u2            #similarity matrix
+
+    ml_u2.test = TestSet(
+        'u1 test set',                                              #name
+        'datasets/ml-100k/u2.test')
+    ml_u2.build_predictions_df('item_similarity/ml_u2_item_pearson_predictions.csv')
+
+    ml_u2.test.calculate_mae()
+    ml_u2.test.calculate_rmse()
+    print("MAE: " + str(ml_u2.test.mae))
+    print("RMSE: " + str(ml_u2.test.rmse))
+    return ml_u2
+
+def load_ml_u3_user_pearson():
+    #NEED ONLY FUNCTIONS TO BE BUILD FUNCTIONS THAT TAKE A CSV
+    ml_u3 = TrainingAndTest('MovieLens u3 training/test sets')
+    ml_u3.training = Dataset(
+        'u3 training set',                                      #name
+        'datasets/ml-100k/u3.base',                             #original source
+        'datasets/ml-100k/utility-matrix/ml_u3_user_um.csv',    #utility matrix
+        'user_similarity/ml_u3_user_pearson_sm.csv',            #similarity matrix
+        'ml',                                                   #data source
+        'user',                                                 #algorithm
+        'pearson')                                              #correlation
+    print("ml_u3.training UM")
+    print(ml_u3.training.um_df)
+    print("ml_u3.training SM")
+    print(ml_u3.training.sm_df)
+    ml_u3.test = TestSet(
+        'u3 test set',                                          #name
+        'datasets/ml-100k/u3.test')
+
+    ml_u3.build_ml_user_predictions_df('user_similarity/ml_u3_user_pearson_predictions.csv')
+    #print("ml_u3.test.og_df")
+    print(ml_u3.test.og_df)
+    
+    print("ml_u3.test.predictions_df")
+    print(ml_u3.test.predictions_df)
+    
+    ml_u3.test.calculate_mae()
+    ml_u3.test.calculate_rmse()
+    print("MAE: " + str(ml_u3.test.mae))
+    print("RMSE: " + str(ml_u3.test.rmse))
+    return ml_u3
+
+def load_ml_u3_user_cosine():
+    #NEED ONLY FUNCTIONS TO BE BUILD FUNCTIONS THAT TAKE A CSV
+    ml_u3 = TrainingAndTest('MovieLens u3 training/test sets')
+    ml_u3.training = Dataset(
+        'u3 training set',                                      #name
+        'datasets/ml-100k/u3.base',                             #original source
+        'datasets/ml-100k/utility-matrix/ml_u3_user_um.csv',    #utility matrix
+        'user_similarity/ml_u3_user_cosine_sm.csv',            #similarity matrix
+        'ml',                                                   #data source
+        'user',                                                 #algorithm
+        'cosine')                                               #correlation
+    ml_u3.test = TestSet(
+        'u3 test set',                                          #name
+        'datasets/ml-100k/u3.test')
+
+    ml_u3.build_ml_user_predictions_df('user_similarity/ml_u3_user_cosine_predictions.csv')
+    #print("ml_u3.test.og_df")
+    print("ml_u3.test.predictions_df")
+    print(ml_u3.test.predictions_df)
+    ml_u3.test.calculate_mae()
+    ml_u3.test.calculate_rmse()
+    print("MAE: " + str(ml_u3.test.mae))
+    print("RMSE: " + str(ml_u3.test.rmse))
+    return ml_u3            #similarity matrix
+
+    ml_u3.test = TestSet(
+        'u1 test set',                                              #name
+        'datasets/ml-100k/u3.test')
+    ml_u3.build_predictions_df('item_similarity/ml_u3_item_pearson_predictions.csv')
+
+    ml_u3.test.calculate_mae()
+    ml_u3.test.calculate_rmse()
+    print("MAE: " + str(ml_u3.test.mae))
+    print("RMSE: " + str(ml_u3.test.rmse))
+    return ml_u3
+
+def load_ml_u4_user_pearson():
+    #NEED ONLY FUNCTIONS TO BE BUILD FUNCTIONS THAT TAKE A CSV
+    ml_u4 = TrainingAndTest('MovieLens u4 training/test sets')
+    ml_u4.training = Dataset(
+        'u4 training set',                                      #name
+        'datasets/ml-100k/u4.base',                             #original source
+        'datasets/ml-100k/utility-matrix/ml_u4_user_um.csv',    #utility matrix
+        'user_similarity/ml_u4_user_pearson_sm.csv',            #similarity matrix
+        'ml',                                                   #data source
+        'user',                                                 #algorithm
+        'pearson')                                              #correlation
+    print("ml_u4.training UM")
+    print(ml_u4.training.um_df)
+    print("ml_u4.training SM")
+    print(ml_u4.training.sm_df)
+    ml_u4.test = TestSet(
+        'u4 test set',                                          #name
+        'datasets/ml-100k/u4.test')
+
+    ml_u4.build_ml_user_predictions_df('user_similarity/ml_u4_user_pearson_predictions.csv')
+    #print("ml_u4.test.og_df")
+    print(ml_u4.test.og_df)
+    
+    print("ml_u4.test.predictions_df")
+    print(ml_u4.test.predictions_df)
+    
+    ml_u4.test.calculate_mae()
+    ml_u4.test.calculate_rmse()
+    print("MAE: " + str(ml_u4.test.mae))
+    print("RMSE: " + str(ml_u4.test.rmse))
+    return ml_u4
+
+def load_ml_u4_user_cosine():
+    #NEED ONLY FUNCTIONS TO BE BUILD FUNCTIONS THAT TAKE A CSV
+    ml_u4 = TrainingAndTest('MovieLens u4 training/test sets')
+    ml_u4.training = Dataset(
+        'u4 training set',                                      #name
+        'datasets/ml-100k/u4.base',                             #original source
+        'datasets/ml-100k/utility-matrix/ml_u4_user_um.csv',    #utility matrix
+        'user_similarity/ml_u4_user_cosine_sm.csv',            #similarity matrix
+        'ml',                                                   #data source
+        'user',                                                 #algorithm
+        'cosine')                                               #correlation
+    ml_u4.test = TestSet(
+        'u4 test set',                                          #name
+        'datasets/ml-100k/u4.test')
+
+    ml_u4.build_ml_user_predictions_df('user_similarity/ml_u4_user_cosine_predictions.csv')
+    #print("ml_u4.test.og_df")
+    print("ml_u4.test.predictions_df")
+    print(ml_u4.test.predictions_df)
+    ml_u4.test.calculate_mae()
+    ml_u4.test.calculate_rmse()
+    print("MAE: " + str(ml_u4.test.mae))
+    print("RMSE: " + str(ml_u4.test.rmse))
+    return ml_u4            #similarity matrix
+
+    ml_u4.test = TestSet(
+        'u1 test set',                                              #name
+        'datasets/ml-100k/u4.test')
+    ml_u4.build_predictions_df('item_similarity/ml_u4_item_pearson_predictions.csv')
+
+    ml_u4.test.calculate_mae()
+    ml_u4.test.calculate_rmse()
+    print("MAE: " + str(ml_u4.test.mae))
+    print("RMSE: " + str(ml_u4.test.rmse))
+    return ml_u4    
+
+def load_ml_u5_user_pearson():
+    #NEED ONLY FUNCTIONS TO BE BUILD FUNCTIONS THAT TAKE A CSV
+    ml_u5 = TrainingAndTest('MovieLens u5 training/test sets')
+    ml_u5.training = Dataset(
+        'u5 training set',                                      #name
+        'datasets/ml-100k/u5.base',                             #original source
+        'datasets/ml-100k/utility-matrix/ml_u5_user_um.csv',    #utility matrix
+        'user_similarity/ml_u5_user_pearson_sm.csv',            #similarity matrix
+        'ml',                                                   #data source
+        'user',                                                 #algorithm
+        'pearson')                                              #correlation
+    print("ml_u5.training UM")
+    print(ml_u5.training.um_df)
+    print("ml_u5.training SM")
+    print(ml_u5.training.sm_df)
+    ml_u5.test = TestSet(
+        'u5 test set',                                          #name
+        'datasets/ml-100k/u5.test')
+
+    ml_u5.build_ml_user_predictions_df('user_similarity/ml_u5_user_pearson_predictions.csv')
+    #print("ml_u5.test.og_df")
+    print(ml_u5.test.og_df)
+    
+    print("ml_u5.test.predictions_df")
+    print(ml_u5.test.predictions_df)
+    
+    ml_u5.test.calculate_mae()
+    ml_u5.test.calculate_rmse()
+    print("MAE: " + str(ml_u5.test.mae))
+    print("RMSE: " + str(ml_u5.test.rmse))
+    return ml_u5
+
+def load_ml_u5_user_cosine():
+    #NEED ONLY FUNCTIONS TO BE BUILD FUNCTIONS THAT TAKE A CSV
+    ml_u5 = TrainingAndTest('MovieLens u5 training/test sets')
+    ml_u5.training = Dataset(
+        'u5 training set',                                      #name
+        'datasets/ml-100k/u5.base',                             #original source
+        'datasets/ml-100k/utility-matrix/ml_u5_user_um.csv',    #utility matrix
+        'user_similarity/ml_u5_user_cosine_sm.csv',            #similarity matrix
+        'ml',                                                   #data source
+        'user',                                                 #algorithm
+        'cosine')                                               #correlation
+    ml_u5.test = TestSet(
+        'u5 test set',                                          #name
+        'datasets/ml-100k/u5.test')
+
+    ml_u5.build_ml_user_predictions_df('user_similarity/ml_u5_user_cosine_predictions.csv')
+    #print("ml_u5.test.og_df")
+    print("ml_u5.test.predictions_df")
+    print(ml_u5.test.predictions_df)
+    ml_u5.test.calculate_mae()
+    ml_u5.test.calculate_rmse()
+    print("MAE: " + str(ml_u5.test.mae))
+    print("RMSE: " + str(ml_u5.test.rmse))
+    return ml_u5            #similarity matrix
+
+    ml_u5.test = TestSet(
+        'u1 test set',                                              #name
+        'datasets/ml-100k/u5.test')
+    ml_u5.build_predictions_df('item_similarity/ml_u5_item_pearson_predictions.csv')
+
+    ml_u5.test.calculate_mae()
+    ml_u5.test.calculate_rmse()
+    print("MAE: " + str(ml_u5.test.mae))
+    print("RMSE: " + str(ml_u5.test.rmse))
+    return ml_u5  
+
 def load_yelp_stut():
     yelp_stut = Dataset("Yelp Stuttgart, Germany Reviews")
     yelp_stut.item_utility_source = 'datasets/yelp_dataset/utility-matrix/yelp_utility_matrix_stuttgart.csv'
@@ -441,8 +775,20 @@ def load_yelp_stut():
     print(yelp_stut.user_pearson_sim_df)
     
 def main():
-    ml_u1 = load_ml_u1()
-    #ml_u1 = load_ml_u1_item_pearson()
+    #ml_u1 = load_ml_u1()
+    ml_u2 = load_ml_u2_user_pearson()
+    ml_u2 = load_ml_u2_user_cosine()
+    ml_u3 = load_ml_u3_user_pearson()
+    ml_u3 = load_ml_u3_user_cosine()
+    ml_u4 = load_ml_u4_user_pearson()
+    ml_u4 = load_ml_u4_user_cosine()
+    ml_u5 = load_ml_u5_user_pearson()
+    ml_u5 = load_ml_u5_user_cosine()
+    '''
+    print("Correlation between observed values and predictions")
+    print(ml_u1.test.predictions_df['observed'].corr(ml_u1.test.predictions_df['prediction']))
+    '''
+    #ml_u2 = load_ml_u2_item_pearson()
 
 if __name__ == '__main__':
     main()

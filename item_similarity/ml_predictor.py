@@ -73,7 +73,6 @@ def predict(dataset, dest_filename):
         
         prediction = sum_weighted_ratings / sum_abs_correlations
         
-        '''
         print('Top 30 similar:')
         print(top_30_sim_items)
         time.sleep(3)
@@ -84,8 +83,8 @@ def predict(dataset, dest_filename):
         print(weighted_top_30)
         time.sleep(3)
         print('PREDICTION for user ' + str(user + 1) + ' on item ' + str(item + 1) + ': ' + str(prediction))
-        time.sleep(5)
-        '''
+        time.sleep(3)
+
         predictions[i] = prediction
         predictions = pd.Series(predictions)
         

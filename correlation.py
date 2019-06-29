@@ -8,6 +8,7 @@ import numpy as np
 import math
 import timeit
 
+
 #PEARSON CORRELATION FUNCTION
 #Parameters: two numpy 1-dimensional arrays (item/user vectors)
 def pearson_meanall(col1, col2):
@@ -32,6 +33,7 @@ def pearson_meanall(col1, col2):
     col2_mean = np.nanmean(col2)
     
     
+    
     for i in range(0, len(col1)):
 
         if corated[i]:
@@ -48,16 +50,24 @@ def pearson_meanall(col1, col2):
 
 def pearson(col1, col2):
     #Finds corated values by checking each element of each array for non-NaN status and performing AND on the results
+    '''
     col1_rated = np.logical_not(np.isnan(col1))
     #print(col1_rated[0:25])
     col2_rated = np.logical_not(np.isnan(col2))
     #print(col2_rated[0:25])
     corated = np.logical_and(col1_rated, col2_rated)
-    #print(corated[0:25])
-    #print(col1_rated[0:25])
+    '''
+    col1_new = (col1 * col2) / col2
+    col2_new = (col2 * col1) / col1
+    col1 = col1_new
+    col2 = col2_new
+    #removes nans from both columns, leaving only corated items
+    col1 = col1[~np.isnan(col1)]
+    col2 = col2[~np.isnan(col2)]
+
     
     #if there are no corated values, return 0 to save time
-    if np.sum(corated) == 0: #this is a sum of True values (each True == 1)
+    if len(col1) == 0: #this is a sum of True values (each True == 1)
         return 0
     
     sum_product_distances_from_mean = 0
@@ -72,10 +82,12 @@ def pearson(col1, col2):
         return col
     '''
     #remove non-corated values by multiplying them times corated (n * True = n, n * False = 0)
+    '''
     col1 = col1 * corated
     col2 = col2 * corated
-    col1_mean = np.nanmean(col1) #mean excluding nans
-    col2_mean = np.nanmean(col2)
+    '''
+    col1_mean = np.mean(col1) #mean excluding nans
+    col2_mean = np.mean(col2)
     '''
     def final_calc(i):
         col1_distance_from_mean = col1[i] - col1_mean
@@ -87,7 +99,7 @@ def pearson(col1, col2):
     [final_calc(i) for i in col1 if corated[i]]
     '''    
     for i in range(len(col1)):
-        if corated[i]:
+        if col1[i] != math.nan:
             #numerator of formula
             col1_distance_from_mean = col1[i] - col1_mean
             col2_distance_from_mean = col2[i] - col2_mean
@@ -103,6 +115,28 @@ def pearson(col1, col2):
 #Parameters: two numpy 1-dimensional arrays (item/user vectors)
 def cosine(col1, col2):
     
+    col1_new = (col1 * col2) / col2
+    col2_new = (col2 * col1) / col1
+    col1 = col1_new
+    col2 = col2_new
+    #removes nans from both columns, leaving only corated items
+    col1 = col1[~np.isnan(col1)]
+    col2 = col2[~np.isnan(col2)]
+
+    
+    #if there are no corated values, return 0 to save time
+    if len(col1) == 0: #this is a sum of True values (each True == 1)
+        return 0
+    '''
+    dot_col1_col2 = np.nansum(col1 * col2)
+    norm_col1 = math.sqrt(np.nansum(np.power(col1, [2])))
+    norm_col2 = math.sqrt(np.nansum(np.power(col2, [2])))
+    return dot_col1_col2 / (norm_col1 * norm_col2)
+    '''
+    return np.dot(col1, col2) / (np.linalg.norm(col1, ord=2) * np.linalg.norm(col2, ord=2))
+
+def cos_old(col1, col2):
+    
     col1 = np.nan_to_num(col1)
     col2 = np.nan_to_num(col2)
     '''
@@ -112,8 +146,8 @@ def cosine(col1, col2):
     return dot_col1_col2 / (norm_col1 * norm_col2)
     '''
     return np.dot(col1, col2) / (np.linalg.norm(col1, ord=2) * np.linalg.norm(col2, ord=2))
-    
-def main():
+
+def operation_time():
     t = timeit.Timer(stmt='''
 col1 = col1 * corated
 col2 = col2 * corated
@@ -165,6 +199,11 @@ def remove_non_corated(col):
     tests = 500
     print(str(t.timeit(number=tests) * (1000/tests)) + ' ms per operation')
     #only for testing formulas
+
+def main():
+    print("nothing to see here")
+    
+    
 
 
 if __name__ == '__main__':

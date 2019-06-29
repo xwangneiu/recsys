@@ -15,7 +15,7 @@ def calculate_rmse(dataframe):
     #dataframe has 'user', 'item', 'observed' columns
     #Function that Calculate Root Mean Square
     print(dataframe)
-    dataframe= dataframe.dropna()
+    dataframe = dataframe.dropna()
     dataframe['error'] = dataframe['observed'] - dataframe['prediction']
     error_arr = dataframe.error.to_numpy()
 
@@ -29,7 +29,7 @@ def calculate_rmse(dataframe):
             square += (arr[i] ** 2)
 
             # Calculate Mean
-        mean = (square / (float)(n))
+        mean = (square / float(n))
 
         # Calculate Root
         root = math.sqrt(mean)
@@ -53,8 +53,6 @@ def main():
     
 
 if __name__ == '__main__':
-    arr = [10, 4, 6, 8]
-    n = len(arr)
     #print(rmsValue(arr, n))
     # returns one number, a float
     main()
