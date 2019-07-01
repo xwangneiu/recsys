@@ -33,6 +33,8 @@ def predict(dataset, dest_filename):
     for i in range(len(sm_indices)):
         sm_a2p_ix[sm_indices[i]] = i
         sm_p2a_ix[i] = sm_indices[i]
+    print(sm_a2p_ix)
+    print(sm_p2a_ix)
     um_a2p_ix = {} #utility matrix actual index -> positional index
     um_p2a_ix = {} #utility matrix positional index -> actual index
     for i in range(len(um_indices)):
@@ -40,7 +42,7 @@ def predict(dataset, dest_filename):
         um_p2a_ix[i] = um_indices[i]
 
     
-
+    '''
     results = pd.DataFrame(dataset.test.og_df)
     users_and_items = dataset.test.user_item_pairs_df.to_numpy()
     predictions = np.zeros(len(users_and_items), dtype=float)
@@ -108,7 +110,7 @@ def predict(dataset, dest_filename):
                 #gets weighted ratings of the top 30
                 for j in range(len(top_30_most_sim)):
                     weighted_top_30[j][1] = top_30_most_sim[j][1] * ratings_top_30[j][1]
-                '''
+                
                 print('Top 30 similar:')
                 print(top_30_most_sim)
                 #time.sleep(3)
@@ -118,7 +120,7 @@ def predict(dataset, dest_filename):
                 print('Top 30 ratings, weighted:' )
                 print(weighted_top_30)
                 #time.sleep(3)
-                '''
+                
                 #gets sum of the absolute values of the top 30 most similar items' correlation coefficients
                 #also gets sum of the weighted ratings of the top 30
                 sum_abs_correlations = 0
@@ -134,10 +136,10 @@ def predict(dataset, dest_filename):
                     if not np.isnan(weighted_top_30[j][1]):
                         sum_weighted_ratings += weighted_top_30[j][1]
                         #print(sum_weighted_ratings)
-                '''
+                
                 print('Sum of weighted ratings: ' + str(sum_weighted_ratings))
                 print('Sum of absolute correlations: ' + str(sum_abs_correlations))
-                '''
+                
                 if sum_abs_correlations == 0 or sum_weighted_ratings == 0:
                     prediction = math.nan
                 else:
@@ -151,7 +153,7 @@ def predict(dataset, dest_filename):
     print(results)
     results.to_csv(dest_filename)
     return results
-
+    '''
 #adds a prediction to a test set object
     
 def main():
@@ -162,7 +164,7 @@ def main():
     #ml_100k = datasets.load_ml_100k()
     ml_u1 = datasets.load_ml_u1_item_pearson()
     print(ml_u1.training.um_df)
-    os.chdir('user_similarity')
+    os.chdir('item_similarity')
     prediction = predict(ml_u1, 'filename')
     print(prediction)
     

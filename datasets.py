@@ -414,10 +414,12 @@ def load_ml_u1_item_pearson():
     print(ml_u1.test.og_df)
     print("ml_u1.test.predictions_df")
     print(ml_u1.test.predictions_df)
+    '''
     ml_u1.test.calculate_mae()
     ml_u1.test.calculate_rmse()
     print("MAE: " + str(ml_u1.test.mae))
     print("RMSE: " + str(ml_u1.test.rmse))
+    '''
     return ml_u1
 
 def load_ml_u1_user_pearson():
