@@ -142,6 +142,8 @@ def predict(dataset, dest_filename):
                     prediction = math.nan
                 else:
                     prediction = sum_weighted_ratings / sum_abs_correlations
+                if prediction < 1:
+                    prediction = 1
         print('PREDICTION for user ' + str(user) + ' on item ' + str(item) + ': ' + str(prediction))
         predictions[i] = prediction
         

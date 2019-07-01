@@ -33,7 +33,6 @@ class Dataset:
     #similarity matrix dataframe
     sm_df = None    
     
-    
     #CONSTRUCTOR
     #og - original data; um - utility matrix; sm - similarity matrix
     #Keyword Arguments: data=ml,yelp; algo=item,user,wnmf; sim=pearson,cosine,wnmf
@@ -63,14 +62,13 @@ class Dataset:
             elif algo == 'wnmf':
                 self.um_df = self.build_yelp_wnmf_um(um_file)
             if sim == 'pearson':
-                    self.sm_df = self.build_yelp_pearson_sm(sm_file) #function returns sim df
+                self.sm_df = self.build_yelp_pearson_sm(sm_file) #function returns sim df
             elif sim == 'cosine':
-                    self.sm_df = self.build_yelp_cosine_sm(sm_file)
+                self.sm_df = self.build_yelp_cosine_sm(sm_file)
         
         
         
     #METHODS
-    
     #build a dataframe from the source csv file #GOOD 6/25
     def build_ml_og_df(self, og_file):
         try:
@@ -98,59 +96,6 @@ class Dataset:
         #print(um_df)
         return um_df
             
-        '''
-        #SHOULD CALL ml_utility_builder.build('csv', type='item') #item or user-based, depending on type argument
-        #import item_utility_builder
-        #item_utility_builder.build(params)
-        #always has to specify a source file
-        #   tries to read source file
-        #       if fails, builds source file from previous step dataframe
-        #           if no previous step dataframe, throws error
-        #   returns dataframe
-        
-        #if no source file for the dataset has been specified:
-        if self.item_utility_source is None:
-            if self.og_df is None:
-                self.build_ml_og_df()
-            self.item_utility_df = self.og_df.pivot_table(index='user', columns='movie', values='rating')
-            #print(self.item_utility_df)
-            self.item_utility_df.to_csv(dest_filename)
-            self.item_utility_source = dest_filename
-        elif self.item_utility_df is None:
-            self.build_ml_item_um_df()
-        '''
-    '''
-    def build_ml_item_um_df(self):
-        if self.item_utility_source is None:
-            print('build_item_utility_df Error: build a utility matrix source csv file first')
-        else:
-            self.item_utility_df = pd.read_csv(self.item_utility_source, index_col = 0)
-    '''
-    
-    '''
-    #build item-based similarity matrix using Pandas Corrwith function (test purposes only)
-    def build_item_pearson_sim_corrwith(self, dest_filename):
-        #NEED TO IMPLEMENT CODE THAT MAKES IT WORK EVEN IF UTILITY NOT BUILT, etc.
-        
-        #if utility matrix not built yet
-        if self.item_utility_df is None:
-            print('build_item_pearson_sim Error: Utility matrix must be built first')
-            
-        else:            
-            #create first column/dataframe
-            row = self.item_utility_df.corrwith(self.item_utility_df['1']) #may need to make string
-            similarity = pd.DataFrame(row, columns=[1]) #may need to make string
-            
-            for i in range(2, len(self.item_utility_df.columns)):
-                if i % 10 == 0:
-                    print('Correlating item ' + str(i) + '...')
-                similarity[i] = self.item_utility_df.corrwith(self.item_utility_df[str(i)])
-            print(similarity)
-            self.item_pearson_sim_df = similarity
-            similarity.to_csv(dest_filename)
-            self.item_pearson_sim_source = dest_filename
-        '''
-            
     def build_ml_pearson_sm(self, sm_file):
         sm_df = None
         try:
@@ -173,41 +118,6 @@ class Dataset:
         print('MovieLens cosine similarity matrix ready (sm_df)')
         #print(sm_df)
         return sm_df
-    
-            
-    '''
-    def build_user_pearson_sim(self, dest_filename):     
-        #if utility matrix not built yet
-        if self.item_utility_df is None:
-            print('build_item_pearson_sim Error: Utility matrix must be built first')           
-        else:
-            self.user_utility_df = self.item_utility_df.transpose()
-            utility_np = self.user_utility_df.to_numpy()
-            similarity_np = np.zeros((len(utility_np[0]), len(utility_np[0])), dtype=float) 
-            #ITERATE OVER DATA
-            for i in range(len(similarity_np)):
-                print("User " + str(i))
-                for j in range(len(similarity_np[i])):
-                    if similarity_np[j][i] != 0:
-                        similarity_np[i][j] = similarity_np[j][i]
-                    else:
-                        similarity_np[i][j] = pearson_corr(utility_np[:, i], utility_np[:, j])
-            
-            #EXPORT COMPLETED SIMILARITY MATRIX
-            similarity = pd.DataFrame(similarity_np, index = self.user_utility_df.columns, columns = self.user_utility_df.columns)
-            similarity.to_csv(dest_filename)
-            self.user_pearson_sim_source = dest_filename
-            self.user_pearson_sim_df = similarity
-            
-            print("User-Based Pearson")
-            print(similarity)
-            
-    def build_user_pearson_sim_df(self):
-        if self.user_pearson_sim_source is None:
-            print('build_user_pearson_sim_df Error: build a user-based Pearson correlation source csv file first with build_user_pearson_sim')
-        else:
-            self.user_pearson_sim_df = pd.read_csv(self.user_pearson_sim_source, index_col = 0)
-    '''
 
     #USER-BASED METHODS
     def build_ml_user_um(self, um_file):
@@ -221,6 +131,7 @@ class Dataset:
         print('MovieLens user-based utility matrix ready')
         um_df = um_df.T
         return um_df
+    
     '''
     #NEED TO FINISH THIS
     #YELP USER UM function called here needs to return a dictionary
@@ -409,17 +320,15 @@ def load_ml_u1_item_pearson():
     ml_u1.test = TestSet(
         'u1 test set',                                          #name
         'datasets/ml-100k/u1.test')
-    ml_u1.build_ml_item_predictions_df('item_similarity/ml_u1_item_pearson_predictions.csv')
+    ml_u1.build_ml_item_predictions_df('item_similarity/filename')
     print("ml_u1.test.og_df")
     print(ml_u1.test.og_df)
     print("ml_u1.test.predictions_df")
     print(ml_u1.test.predictions_df)
-    '''
     ml_u1.test.calculate_mae()
     ml_u1.test.calculate_rmse()
     print("MAE: " + str(ml_u1.test.mae))
     print("RMSE: " + str(ml_u1.test.rmse))
-    '''
     return ml_u1
 
 def load_ml_u1_user_pearson():
@@ -463,10 +372,10 @@ def load_yelp_stut():
     print(yelp_stut.user_pearson_sim_df)
     
 def main():
-    '''
-    print("Correlation between observed values and predictions")
-    print(ml_u1.test.predictions_df['observed'].corr(ml_u1.test.predictions_df['prediction']))
-    '''
+    ml_u1 = load_ml_u1_item_pearson()
+    #print("Correlation between observed values and predictions")
+    #print(ml_u1.test.predictions_df['observed'].corr(ml_u1.test.predictions_df['prediction']))
+    
 
 if __name__ == '__main__':
     main()

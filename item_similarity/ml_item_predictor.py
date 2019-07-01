@@ -33,16 +33,15 @@ def predict(dataset, dest_filename):
     for i in range(len(sm_indices)):
         sm_a2p_ix[sm_indices[i]] = i
         sm_p2a_ix[i] = sm_indices[i]
-    print(sm_a2p_ix)
-    print(sm_p2a_ix)
+
     um_a2p_ix = {} #utility matrix actual index -> positional index
     um_p2a_ix = {} #utility matrix positional index -> actual index
     for i in range(len(um_indices)):
         um_a2p_ix[um_indices[i]] = i
         um_p2a_ix[i] = um_indices[i]
+    print(um_a2p_ix)
+    print(um_p2a_ix)
 
-    
-    '''
     results = pd.DataFrame(dataset.test.og_df)
     users_and_items = dataset.test.user_item_pairs_df.to_numpy()
     predictions = np.zeros(len(users_and_items), dtype=float)
@@ -71,7 +70,7 @@ def predict(dataset, dest_filename):
             #print(ratings)
             #print(user_ratings)
             sim_item = None
-            if user not in sm_a2p_ix:
+            if item not in sm_a2p_ix:
                 prediction = math.nan
             else:     
                 sim_item = sm[sm_a2p_ix[item], :]
@@ -119,7 +118,7 @@ def predict(dataset, dest_filename):
                 #time.sleep(3)
                 print('Top 30 ratings, weighted:' )
                 print(weighted_top_30)
-                #time.sleep(3)
+                #time.sleep(8)
                 
                 #gets sum of the absolute values of the top 30 most similar items' correlation coefficients
                 #also gets sum of the weighted ratings of the top 30
@@ -144,6 +143,8 @@ def predict(dataset, dest_filename):
                     prediction = math.nan
                 else:
                     prediction = sum_weighted_ratings / sum_abs_correlations
+                if prediction < 1:
+                    prediction = 1
         print('PREDICTION for user ' + str(user) + ' on item ' + str(item) + ': ' + str(prediction))
         predictions[i] = prediction
         
@@ -153,7 +154,7 @@ def predict(dataset, dest_filename):
     print(results)
     results.to_csv(dest_filename)
     return results
-    '''
+    
 #adds a prediction to a test set object
     
 def main():
