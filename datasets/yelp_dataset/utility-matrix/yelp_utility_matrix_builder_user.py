@@ -16,11 +16,11 @@ def yelp_utility_matrix(df, output_json, json_file_path = 'urbana_zip.json'):
 		except:
 			print('Zip file for building UM possibly empty. Returning to caller.')
 			return
-	businesses = pd.read_csv('../yelp_business.csv')
+	# businesses = pd.read_csv('../yelp_business.csv')
 	output_dict = {}
 	for chunk in df:
-		chunk = chunk.merge(businesses[['business_id', 'postal_code']], on = 'business_id')
-		chunk = chunk[chunk.postal_code.isin(zip_list)]
+		# chunk = chunk.merge(businesses[['business_id', 'postal_code']], on = 'business_id')
+		# chunk = chunk[chunk.postal_code.isin(zip_list)]
 		for j in range(len(chunk.index)):
 			# Could optmize accessing each row? iterrow() was not working at the time
 			curr = chunk.iloc[j]
@@ -35,8 +35,8 @@ def yelp_utility_matrix(df, output_json, json_file_path = 'urbana_zip.json'):
 	return output_dict
 
 def main():
-	df = pd.read_csv('../yelp_review.csv', chunksize = 500)
-	yelp_utility_matrix(df, 'yelp_utility_matrix_uc_user.json')
+	df = pd.read_csv('../yelp_review_uc_training_5.csv', chunksize = 500)
+	yelp_utility_matrix(df, 'yelp_utility_matrix_uc_user_training_5.json')
 
 if __name__ == '__main__' :
 	main()
