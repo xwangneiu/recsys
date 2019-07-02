@@ -67,6 +67,7 @@ class Dataset:
         
         
     #METHODS
+    #MOVIELENS
     #build a dataframe from the source csv file #GOOD 6/25
     def build_ml_og_df(self, og_file):
         try:
@@ -78,7 +79,7 @@ class Dataset:
             return og_df
         except FileNotFoundError:
             print("build_ml_og_df error: Original data file not at location given")
-    #ITEM-BASED METHODS
+        
     
     #builds item-based utility matrix for data file at specified filename #GOOD 6/25
     #results in an item-based utility matrix with columns denoted '1', '2', '3' (strings) and rows 1, 2, 3 (integers)
@@ -92,6 +93,18 @@ class Dataset:
             um_df = ml_item_um_builder.build(self.og_df, um_file)
         print('MovieLens item-based utility matrix ready (um_df)')
         #print(um_df)
+        return um_df
+    
+    def build_ml_user_um(self, um_file):
+        um_df = None
+        try:
+            um_df = pd.read_csv(um_file, index_col = 0)
+        except FileNotFoundError:
+            print('Building MovieLens user-based utility matrix for the \'' + self.name + '\' dataset')
+            from item_similarity import ml_item_um_builder
+            um_df = ml_item_um_builder.build(self.og_df, um_file)
+        print('MovieLens user-based utility matrix ready')
+        um_df = um_df.T
         return um_df
             
     def build_ml_pearson_sm(self, sm_file):
@@ -117,30 +130,18 @@ class Dataset:
         #print(sm_df)
         return sm_df
 
-    #USER-BASED METHODS
-    def build_ml_user_um(self, um_file):
-        um_df = None
+    #YELP
+    
+    def build_yelp_og_df(self, og_file):
         try:
-            um_df = pd.read_csv(um_file, index_col = 0)
+            og_df = pd.read_csv(og_file)
+            del og_df['timestamp']
+            print("Original MovieLens data file ready (og_df)")
+            print("og_df")
+            print(og_df)
+            return og_df
         except FileNotFoundError:
-            print('Building MovieLens user-based utility matrix for the \'' + self.name + '\' dataset')
-            from item_similarity import ml_item_um_builder
-            um_df = ml_item_um_builder.build(self.og_df, um_file)
-        print('MovieLens user-based utility matrix ready')
-        um_df = um_df.T
-        return um_df
-    
-    
-    #NEED TO FINISH THIS
-    #YELP USER UM function called here needs to return a dictionary
-    '''
-    def build_yelp_og_df(self, takes test set csv):
-        returns og_df
-    
-    def build_yelp_item_um(self, og_df, um_file):
-        um_df = None
-        try: 
-    '''
+            print("build_ml_og_df error: Original data file not at location given")
             
             
     
@@ -252,6 +253,22 @@ class TrainingAndTest:
             print('Running predictor on given training set')
             from user_similarity import ml_user_predictor as mup
             predictions_df = mup.predict(self, predictions_file)
+            print('Predictions saved at ' + predictions_file)
+        self.test.predictions_df = predictions_df
+        print('Prediction results ready (test.predictions_df)')
+        print(predictions_df)
+        return predictions_df
+
+    def build_yelp_user_predictions_df(self, predictions_file):
+        predictions_df = None
+        try:
+            predictions_df = pd.read_csv(predictions_file, index_col=0)
+            print('Prediction results from Yelp test set loaded from file (test.predictions_df)')
+        except FileNotFoundError:
+            print('Running Yelp predictor on given training set')
+            from user_similarity import yelp_user_predictor as yup
+            #note that the below um_df and sm_df are really dictionaries
+            predictions_df = yup.predict(self, self.training.um_df, self.training.sm_df, self.test.og_df, predictions_file)
             print('Predictions saved at ' + predictions_file)
         self.test.predictions_df = predictions_df
         print('Prediction results ready (test.predictions_df)')

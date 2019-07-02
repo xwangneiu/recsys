@@ -23,9 +23,9 @@ def query_user_item():
 
 def run_ml_test(data_source, test_source, name, data, algo, sim):
     results_folder = str(algo)
-    if sim == 'user' or sim == 'item':
+    if algo == 'user' or algo == 'item':
         results_folder += '_similarity/'
-    elif sim == 'wnmf':
+    elif algo == 'wnmf':
         results_folder += '/'
     ds = datasets.TrainingAndTest('MovieLens u1 training/test sets')
     ds.training = datasets.Dataset(
