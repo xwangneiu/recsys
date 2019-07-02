@@ -135,7 +135,7 @@ class Dataset:
     
     def build_yelp_og_df(self, og_file):
         try:
-            og_df = pd.read_csv(og_file, index_col=0)
+            og_df = pd.read_csv(og_file)
             print("Yelp training set loaded (og_df)")
             print(og_df)
             return og_df #this is a Pandas DataFrame

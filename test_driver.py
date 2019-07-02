@@ -24,10 +24,13 @@ def query_user_item():
 def run_test(data_source, test_source, name, data, algo, sim):
     results_folder = str(algo)
     data_utility_dir = None
+    filetype = None
     if data == 'ml':
         data_utility_dir = 'datasets/ml-100k/utility-matrix/'
+        filetype = 'csv'
     elif data == 'yelp':
         data_utility_dir = 'datasets/yelp_dataset/utility-matrix/'
+        filetype = 'json'
     if algo == 'user' or algo == 'item':
         results_folder += '_similarity/'
     elif algo == 'wnmf':
@@ -36,8 +39,8 @@ def run_test(data_source, test_source, name, data, algo, sim):
     ds.training = datasets.Dataset(
         name,                                              #name
         data_source,                             #original source
-        data_utility_dir + str(name) + '_' + str(algo) + '_um.csv',    #utility matrix
-        results_folder + str(name) + '_' + str(algo) + '_' + str(sim) + '_sm.csv',            #similarity matrix
+        data_utility_dir + str(name) + '_' + str(algo) + '_um.' + filetype,    #utility matrix
+        results_folder + str(name) + '_' + str(algo) + '_' + str(sim) + '_sm.' + filetype,            #similarity matrix
         data,                                             #data source
         algo,                                             #algorithm
         sim)                                              #correlation
@@ -94,6 +97,8 @@ def main():
                     run_ml = False
                     break
                 print('Select MovieLens 100k Test Set 1-5 for Prediction')
+                algo_choice = None
+                sim_choice = None
                 dataset_choice = int(input(": "))
                 if dataset_choice < 1 or dataset_choice > 5:
                     print("Invalid dataset selection")
@@ -125,6 +130,8 @@ def main():
             run_yelp = True
             while(run_yelp):
                 print('Select Algorithm for Yelp Champaign-Urbana Data Sets:\n1--Item-Based Pearson 2--Item-Based Cosine 3--User-Based Pearson 4--User-Based Cosine 5--WNMF')
+                algo_choice = None
+                sim_choice = None
                 response_yelp = int(input(": "))
                 if response_yelp == 0:
                     run_yelp = False
@@ -134,18 +141,12 @@ def main():
                 if dataset_choice < 1 or dataset_choice > 5:
                     print("Invalid dataset selection")
                 if response_yelp == 1:
-                    print(sorry)
-                    '''
                     algo_choice = 'item'
                     sim_choice = 'pearson'
-                    '''
                 #query item-based MovieLens predictor
                 elif response_yelp == 2:
-                    print(sorry)
-                    '''
                     algo_choice = 'item'
                     sim_choice = 'cosine'
-                    '''
                 elif response_yelp == 3:
                     algo_choice = 'user'
                     sim_choice = 'pearson'
