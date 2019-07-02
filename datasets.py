@@ -165,6 +165,17 @@ class Dataset:
             um_df = yumu.build(self.og_df, um_file)
         print('Yelp user-based utility matrix ready')
         return um_df #this is a dictionary
+
+    def build_yelp_pearson_sm(self, sm_file):
+        sm_df = None
+        try:
+            with open(sm_file, 'r') as f:
+                sm_df = json.load(f)
+        except FileNotFoundError:
+            from user_similarity import yelp_user_sim_matrix_builder as yusm
+            print('Building Yelp Pearson similarity matrix for the \'' + self.name + '\' dataset') 
+            sm_df = yusm.user_similarity_pearson(self.um_df, sm_file)
+        return sm_df
     
     def build_yelp_cosine_sm(self, sm_file):
         sm_df = None
@@ -172,9 +183,9 @@ class Dataset:
             with open(sm_file, 'r') as f:
                 sm_df = json.load(f)
         except FileNotFoundError:
-            from user_similarity import yelp_user_sim_matrix_builder
+            from user_similarity import yelp_user_sim_matrix_builder as yusm
             print('Building Yelp cosine similarity matrix for the \'' + self.name + '\' dataset') 
-            sm_df = yelp_cosine_sm_builder.build(self.um_df, sm_file)
+            sm_df = yusm.user_similarity_cosine(self.um_df, sm_file)
         return sm_df
     
     
