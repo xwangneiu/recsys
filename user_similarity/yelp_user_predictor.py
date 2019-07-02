@@ -22,14 +22,7 @@ def predict(training_um, training_sm, test_set, output_file_path):
 	
 	test_set = test_set.drop(['Unnamed: 0', 'postal_code', 'Unnamed: 0.1'], axis = 1)
 	test_set['prediction'] = math.nan
-	# For all lines in test set
-	#	take the u1 in the test set
-	# 	get all similarities of u1 from the sim matrix
-	#	take the b1 from the test set
-	#	get all ratings given by users from the UM if they've rated b1 into a list
-	#	if no one in u1's similarities rated b1, return NaN
-	#	if there are ratings, run it through simple weighted average ((Sum of W * R)/(sum of |W|))
-	#	add result to column
+
 	for num, (user, business) in enumerate(zip(test_set['user_id'], test_set['business_id']), start = 0):
 		if user not in training_sm.keys():
 			continue
@@ -39,20 +32,28 @@ def predict(training_um, training_sm, test_set, output_file_path):
 		# Test_set entries are being added by copy, which may cause issues?
 		# The training/test sets aren't split such that there is a guarantee of a person being in the training set
 
-		# This is a map of users' ratings for the business.
-		ratings = {}
-		for key in similarities.keys():
+		ratings = []
+		# This loop generates a list of lists where the inner lists has two values
+		# The first is the similarity coefficient to the user and the second is the rating they've given the business
+		for key, value in similarities.items():
 			if business in training_um[key]:
-				ratings[key] = training_um[key][business]
+				ratings.append([value, training_um[key][business]])
+
+		# Checks if ratings are empty
 		if len(ratings) == 0:
 			continue
 		else:
+			# This determines how many ratings are taken into account
+			k = 30
+
 			numerator = 0
 			denominator = 0
-			for key, value in ratings.items():
-				numerator += float(value * similarities[key])
-				denominator += float(abs(similarities[key]) + 0.0000001)
-		test_set['prediction'][num] = (numerator / denominator)
+			ratings.sort(key=lambda x : x[0])
+			ratings = ratings[0:k]
+			for rating in ratings:
+				numerator += float(rating[0] * rating[1])
+				denominator += float(abs(rating[0]))
+		test_set['prediction'][num] = (numerator / (denominator + 0.000000000001))
 	print(test_set)
 	return test_set
 

@@ -42,7 +42,7 @@ def user_similarity_cosine(um_dict, output_json):
 		f.close()
 	return sim_dict
 
-def user_similarity_pearson(um_dict, output_json):
+def similarity_pearson(um_dict, output_json):
 	sim_dict = {}
 	for key_i, value_i in um_dict.items():
 		curr_dict = {}
