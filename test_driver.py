@@ -63,8 +63,12 @@ def run_test(data_source, test_source, name, data, algo, sim):
             ds.build_yelp_wnmf_predictions_df('wnmf/' + str(name) + '_' + str(algo) + '_' + str(sim) + '_predictions.csv')
     print('Predictions: ')
     print(ds.test.predictions_df)
-    ds.test.calculate_mae()
-    ds.test.calculate_rmse()
+    if data == 'ml':
+        ds.test.calculate_ml_mae()
+        ds.test.calculate_ml_rmse()
+    elif data == 'yelp':
+        ds.test.calculate_yelp_mae()
+        ds.test.calculate_yelp_rmse()
     print("MAE: " + str(ds.test.mae))
     print("RMSE: " + str(ds.test.rmse))
     return ds
@@ -118,7 +122,7 @@ def main():
                 elif response_ml == 5:
                     print(sorry)
                 if response_ml <= 5:
-                    ds = run_ml_test('datasets/ml-100k/u' + str(dataset_choice) + '.base',  #training set source
+                    ds = run_test('datasets/ml-100k/u' + str(dataset_choice) + '.base',  #training set source
                                 'datasets/ml-100k/u' + str(dataset_choice) + '.test',       #test set source
                                 'ml_u' + str(dataset_choice),                               #dataset name
                                 'ml',                                                       #type of data

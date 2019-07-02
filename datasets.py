@@ -145,7 +145,7 @@ class Dataset:
     def build_yelp_item_um(self, um_file):
         um_df = None
         try:
-            with open('um_file', 'r') as f:
+            with open(um_file, 'r') as f:
                 um_df = json.load(f)
         except FileNotFoundError:
             print('Building Yelp user-based utility matrix for the \'' + self.name + '\' dataset')
@@ -157,7 +157,7 @@ class Dataset:
     def build_yelp_user_um(self, um_file):
         um_df = None
         try:
-            with open('um_file', 'r') as f:
+            with open(um_file, 'r') as f:
                 um_df = json.load(f)
         except FileNotFoundError:
             print('Building Yelp user-based utility matrix for the \'' + self.name + '\' dataset')
@@ -231,14 +231,24 @@ class TestSet(Dataset):
     #NON-CONSTRUCTOR-BASED METHODS
     #takes a CSV
     #conventions do not apply to this    
-    def calculate_mae(self):
+    def calculate_ml_mae(self):
         from item_similarity import prediction_error_mae as mae
         self.mae = mae.calculate_mae(self.predictions_df)
         return self.mae
 
-    def calculate_rmse(self):
+    def calculate_ml_rmse(self):
         from item_similarity import prediction_error_rmse as rmse
         self.rmse = rmse.calculate_rmse(self.predictions_df)
+        return self.rmse
+    
+    def calculate_yelp_mae(self):
+        from item_similarity import yelp_prediction_error_mae as ymae
+        self.mae = ymae.calculate_mae(self.predictions_df)
+        return self.mae
+
+    def calculate_yelp_rmse(self):
+        from item_similarity import yelp_prediction_error_rmse as yrmse
+        self.rmse = yrmse.calculate_rmse(self.predictions_df)
         return self.rmse
     
     #TestSet CONSTRUCTOR
@@ -284,6 +294,22 @@ class TrainingAndTest:
             print('Running predictor on given training set')
             from user_similarity import ml_user_predictor as mup
             predictions_df = mup.predict(self, predictions_file)
+            print('Predictions saved at ' + predictions_file)
+        self.test.predictions_df = predictions_df
+        print('Prediction results ready (test.predictions_df)')
+        print(predictions_df)
+        return predictions_df
+    
+    def build_yelp_item_predictions_df(self, predictions_file):
+        predictions_df = None
+        try:
+            predictions_df = pd.read_csv(predictions_file, index_col=0)
+            print('Prediction results from Yelp test set loaded from file (test.predictions_df)')
+        except FileNotFoundError:
+            print('Running Yelp predictor on given training set')
+            from item_similarity import yelp_item_predictor as yip
+            #note that the below um_df and sm_df are really dictionaries
+            predictions_df = yip.predict(self.training.um_df, self.training.sm_df, self.test.og_df, predictions_file)
             print('Predictions saved at ' + predictions_file)
         self.test.predictions_df = predictions_df
         print('Prediction results ready (test.predictions_df)')

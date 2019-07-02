@@ -17,14 +17,17 @@ import datasets
 
 def calculate_mae(dataframe):
     
-    dataset = dataframe.to_numpy()
+    df = dataframe
+    
+    dataset = df.to_numpy()
+    print(dataset)
     datasetcov = dataset[~np.isnan(dataset).any(axis=1)]
     a = datasetcov[:,2]
     b = datasetcov[:,3]
     
     mae = sum(abs((a-b))/len(datasetcov))
     rmse = math.sqrt((sum((a-b)**2))/len(datasetcov))
-    print(rmse)
+    print(mae)
     return mae
     #dataframe has 'user', 'item', 'observed' columns
     #returns one number, a float
