@@ -53,7 +53,7 @@ def predict(training_um, training_sm, test_set, output_file_path):
 			for rating in ratings:
 				numerator += float(rating[0] * rating[1])
 				denominator += float(abs(rating[0]))
-		test_set['prediction'][num] = (numerator / (denominator + 0.000000000001))
+		test_set.at[num, 'prediction'] = (numerator / (denominator + 0.000000000001))
 	print(test_set)
 	return test_set
 
