@@ -53,6 +53,7 @@ class Dataset:
             elif sim == 'cosine':
                     self.sm_df = self.build_ml_cosine_sm(sm_file)
         if data == 'yelp':
+            self.og_df = self.build_yelp_og_df(og_file)
             if algo == 'item':
                 self.um_df = self.build_yelp_item_um(um_file) #function returns um df
             elif algo == 'user':
@@ -135,15 +136,35 @@ class Dataset:
     def build_yelp_og_df(self, og_file):
         try:
             og_df = pd.read_csv(og_file)
-            del og_df['timestamp']
-            print("Original MovieLens data file ready (og_df)")
-            print("og_df")
+            print("Yelp training set loaded (og_df)")
             print(og_df)
-            return og_df
+            return og_df #this is a Pandas DataFrame
         except FileNotFoundError:
-            print("build_ml_og_df error: Original data file not at location given")
+            print("build_ml_og_df error: Yelp training set file not at location given")
             
+    def build_yelp_item_um(self, um_file):
+        um_df = None
+        try:
+            with open('um_file', 'r') as f:
+                um_df = json.load(f)
+        except FileNotFoundError:
+            print('Building Yelp user-based utility matrix for the \'' + self.name + '\' dataset')
+            import yelp_utility_matrix_builder_item as yumi
+            um_df = yumi.build(self.og_df, um_file)
+        print('Yelp item-based utility matrix ready')
+        return um_df #this is a dictionary
             
+    def build_yelp_user_um(self, um_file):
+        um_df = None
+        try:
+            with open('um_file', 'r') as f:
+                um_df = json.load(f)
+        except FileNotFoundError:
+            print('Building Yelp user-based utility matrix for the \'' + self.name + '\' dataset')
+            import yelp_utility_matrix_builder_user as yumu
+            um_df = yumu.build(self.og_df, um_file)
+        print('Yelp user-based utility matrix ready')
+        return um_df #this is a dictionary
     
     def build_yelp_cosine_sm(self, sm_file):
         sm_df = None
@@ -151,10 +172,12 @@ class Dataset:
             with open(sm_file, 'r') as f:
                 sm_df = json.load(f)
         except FileNotFoundError:
-            import yelp_cosine_sm_builder
+            from user_similarity import yelp_user_sim_matrix_builder
             print('Building Yelp cosine similarity matrix for the \'' + self.name + '\' dataset') 
             sm_df = yelp_cosine_sm_builder.build(self.um_df, sm_file)
         return sm_df
+    
+    
 
 #Class for training/test set pairs
 #TestSet subclass inherits from Dataset superclass

@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import json
 
-def yelp_utility_matrix(df, output_json, json_file_path = 'urbana_zip.json'):
+def build(df, output_json, json_file_path = 'urbana_zip.json'):
 	output_dict = {}
 
 	for j in range(len(df.index)):
@@ -26,7 +26,7 @@ def yelp_utility_matrix(df, output_json, json_file_path = 'urbana_zip.json'):
 
 def main():
 	df = pd.read_csv('../yelp_review_uc_training_1.csv')
-	yelp_utility_matrix(df, 'yelp_utility_matrix_uc_item_tr1.json')
+	build(df, 'yelp_utility_matrix_uc_item_tr1.json')
 
 if __name__ == '__main__' :
 	main()
