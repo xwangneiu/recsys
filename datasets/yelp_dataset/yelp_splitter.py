@@ -48,8 +48,8 @@ def extract_entries(data_csv, output_path):
 	df.to_csv(output_path, index = False)
 
 def main():
-	extract_entries('yelp_review.csv','yelp_review_uc.csv')
-	build_test_sets('yelp_review_uc.csv', 'yelp_review_uc')
+	# extract_entries('yelp_review.csv','yelp_review_uc.csv')
+	# build_test_sets('yelp_review_uc.csv', 'yelp_review_uc')
 
 if __name__ == '__main__':
 	main()
