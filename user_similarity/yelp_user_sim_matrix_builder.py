@@ -87,9 +87,9 @@ def read_json(path):
 	return json.load(f)
 
 def main():
-	um_loaded = read_json('../datasets/yelp_dataset/utility-matrix/yelp_utility_matrix_uc_user.json')
-	# user_similarity_cosine(um_loaded, 'yelp_user_sim_matrix_cosine.json')
-	user_similarity_pearson(um_loaded, 'yelp_user_sim_matrix_pearson.json')
+	um_loaded = read_json('../datasets/yelp_dataset/utility-matrix/yelp_utility_matrix_uc_user_tr5.json')
+	user_similarity_cosine(um_loaded, 'yelp_user_sim_matrix_cosine_tr5.json')
+	user_similarity_pearson(um_loaded, 'yelp_user_sim_matrix_pearson_tr5.json')
 
 if __name__ == '__main__':
 	main()
