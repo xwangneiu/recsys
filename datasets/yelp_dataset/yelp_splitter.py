@@ -11,13 +11,13 @@ import json
 
 def shuffle(data_csv):
 	df = pd.read_csv(data_csv)
+	df = df.drop(['postal_code'], axis = )
 	df = df.sample(frac=1).reset_index(drop=True)
 	return df
 
 def build_test_sets(data_csv, set_name):
 	
 	df = shuffle(data_csv)
-
 	partitions = []
 
 	size = int(len(df.index))
@@ -28,9 +28,9 @@ def build_test_sets(data_csv, set_name):
 		del training_set[num-1]
 		output_path = set_name + '_training_' + str(num) + '.csv'
 		df = pd.concat(training_set)
-		df.to_csv(output_path)
+		df.to_csv(output_path, index = False)
 		output_path = set_name + '_testing_' + str(num) + '.csv'
-		part.to_csv(output_path)
+		part.to_csv(output_path, index = False)
 
 def extract_entries(data_csv, output_path):
 	with open('utility-matrix/urbana_zip.json', 'r') as f:
@@ -45,10 +45,10 @@ def extract_entries(data_csv, output_path):
 		chunk = chunk[chunk.postal_code.isin(zip_list)]
 		ls.append(chunk)
 	df = pd.concat(ls)
-	df.to_csv(output_path)
+	df.to_csv(output_path, index = False)
 
 def main():
-	# extract_entries('yelp_review.csv','yelp_review_uc.csv')
+	extract_entries('yelp_review.csv','yelp_review_uc.csv')
 	build_test_sets('yelp_review_uc.csv', 'yelp_review_uc')
 
 if __name__ == '__main__':

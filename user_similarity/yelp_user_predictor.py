@@ -9,7 +9,6 @@ import numpy as np
 import math
 import json
 
-
 def load_files(training_um_path, training_sm_path, test_set_path):
 	with open(training_um_path, 'r') as f:
 		training_um = json.load(f)
@@ -20,7 +19,6 @@ def load_files(training_um_path, training_sm_path, test_set_path):
 
 def predict(training_um, training_sm, test_set, output_file_path):
 	
-	test_set = test_set.drop(['Unnamed: 0', 'postal_code', 'Unnamed: 0.1'], axis = 1)
 	test_set['prediction'] = math.nan
 
 	for num, (user, business) in enumerate(zip(test_set['user_id'], test_set['business_id']), start = 0):
@@ -29,7 +27,6 @@ def predict(training_um, training_sm, test_set, output_file_path):
 		similarities = training_sm[user]
 
 		# CURRENT ISSUES:
-		# Test_set entries are being added by copy, which may cause issues?
 		# The training/test sets aren't split such that there is a guarantee of a person being in the training set
 
 		ratings = []
