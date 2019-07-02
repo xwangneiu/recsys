@@ -11,7 +11,7 @@ import json
 
 def shuffle(data_csv):
 	df = pd.read_csv(data_csv)
-	df = df.drop(['postal_code'], axis = )
+	df = df.drop(['postal_code'], axis = 1)
 	df = df.sample(frac=1).reset_index(drop=True)
 	return df
 
@@ -49,7 +49,8 @@ def extract_entries(data_csv, output_path):
 
 def main():
 	# extract_entries('yelp_review.csv','yelp_review_uc.csv')
-	# build_test_sets('yelp_review_uc.csv', 'yelp_review_uc')
+	#build_test_sets('yelp_review_uc.csv', 'yelp_review_uc')
+	return
 
 if __name__ == '__main__':
 	main()
