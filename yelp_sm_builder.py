@@ -13,7 +13,7 @@ def dict_squared_sum(dict_to_sum):
 		summation += i * i
 	return summation
 
-def user_similarity_cosine(um_dict, output_json):
+def similarity_cosine(um_dict, output_json):
 	sim_dict = {}
 	for key_i, value_i in um_dict.items():
 		curr_dict = {}

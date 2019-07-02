@@ -52,7 +52,7 @@ class Dataset:
                     self.sm_df = self.build_ml_pearson_sm(sm_file) #function returns sim df
             elif sim == 'cosine':
                     self.sm_df = self.build_ml_cosine_sm(sm_file)
-        if data == 'yelp':
+        elif data == 'yelp':
             self.og_df = self.build_yelp_og_df(og_file)
             if algo == 'item':
                 self.um_df = self.build_yelp_item_um(um_file) #function returns um df
@@ -135,7 +135,7 @@ class Dataset:
     
     def build_yelp_og_df(self, og_file):
         try:
-            og_df = pd.read_csv(og_file)
+            og_df = pd.read_csv(og_file, index_col=0)
             print("Yelp training set loaded (og_df)")
             print(og_df)
             return og_df #this is a Pandas DataFrame
@@ -172,9 +172,9 @@ class Dataset:
             with open(sm_file, 'r') as f:
                 sm_df = json.load(f)
         except FileNotFoundError:
-            from user_similarity import yelp_user_sim_matrix_builder as yusm
+            import yelp_sm_builder as ysb
             print('Building Yelp Pearson similarity matrix for the \'' + self.name + '\' dataset') 
-            sm_df = yusm.user_similarity_pearson(self.um_df, sm_file)
+            sm_df = ysb.similarity_pearson(self.um_df, sm_file)
         return sm_df
     
     def build_yelp_cosine_sm(self, sm_file):
@@ -183,12 +183,10 @@ class Dataset:
             with open(sm_file, 'r') as f:
                 sm_df = json.load(f)
         except FileNotFoundError:
-            from user_similarity import yelp_user_sim_matrix_builder as yusm
+            import yelp_sm_builder as ysb
             print('Building Yelp cosine similarity matrix for the \'' + self.name + '\' dataset') 
-            sm_df = yusm.user_similarity_cosine(self.um_df, sm_file)
+            sm_df = ysb.similarity_cosine(self.um_df, sm_file)
         return sm_df
-    
-    
 
 #Class for training/test set pairs
 #TestSet subclass inherits from Dataset superclass
@@ -219,21 +217,20 @@ class TestSet(Dataset):
             return df
         except FileNotFoundError:
             print("TestSet.build_ml_og_df error: Original test set file not at location given when trying to build user_item_pairs_df") 
+            
+            
+    def build_yelp_og_df(self, og_file):
+        try:
+            og_df = pd.read_csv(og_file)
+            print("Yelp test set ready (test.og_df)")
+            return og_df
+        except FileNotFoundError:
+            print("TestSet.build_ml_og_df error: Yelp test set file not at location given") 
     
     
     #NON-CONSTRUCTOR-BASED METHODS
     #takes a CSV
-    #conventions do not apply to this
-            
-    
-    def build_error_df(self):
-        self.error_df = pd.DataFrame(self.predictions_df)
-        self.predictions_df['error'] = (self.predictions_df['observed rating'] - self.predictions_df['prediction']).abs()
-    
-    def save_test_results(self, dest_filename):
-        self.predictions_df.to_csv(dest_filename)
-        
-    
+    #conventions do not apply to this    
     def calculate_mae(self):
         from item_similarity import prediction_error_mae as mae
         self.mae = mae.calculate_mae(self.predictions_df)
@@ -245,14 +242,14 @@ class TestSet(Dataset):
         return self.rmse
     
     #TestSet CONSTRUCTOR
-    def __init__(self, name, og_file, data="ml", prediction_file=None):
+    def __init__(self, name, og_file, data, prediction_file=None):
         self.name = name
         print(name + ' is being prepared...')
         if data == "ml":
             self.og_df = self.build_ml_og_df(og_file)
+            self.user_item_pairs_df = self.build_user_item_pairs_df(og_file)
         elif data == "yelp":
             self.og_df = self.build_yelp_og_df(og_file)
-        self.user_item_pairs_df = self.build_user_item_pairs_df(og_file)
         if prediction_file is not None:
             self.predictions_df = self.build_predictions_df(csv=prediction_file)
 
@@ -302,7 +299,7 @@ class TrainingAndTest:
             print('Running Yelp predictor on given training set')
             from user_similarity import yelp_user_predictor as yup
             #note that the below um_df and sm_df are really dictionaries
-            predictions_df = yup.predict(self, self.training.um_df, self.training.sm_df, self.test.og_df, predictions_file)
+            predictions_df = yup.predict(self.training.um_df, self.training.sm_df, self.test.og_df, predictions_file)
             print('Predictions saved at ' + predictions_file)
         self.test.predictions_df = predictions_df
         print('Prediction results ready (test.predictions_df)')
