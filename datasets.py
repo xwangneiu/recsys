@@ -53,8 +53,6 @@ class Dataset:
             elif sim == 'cosine':
                     self.sm_df = self.build_ml_cosine_sm(sm_file)
         if data == 'yelp':
-            self.og_df = self.build_yelp_og_df(og_file, 
-                                               data='yelp') #function returns df
             if algo == 'item':
                 self.um_df = self.build_yelp_item_um(um_file) #function returns um df
             elif algo == 'user':
@@ -132,17 +130,16 @@ class Dataset:
         um_df = um_df.T
         return um_df
     
-    '''
+    
     #NEED TO FINISH THIS
     #YELP USER UM function called here needs to return a dictionary
-    def build_yelp_user_um(self, um_file):
-        um_df = None #though it's called um_df, it's a dictionary
-        try:
-            with open(um_file, 'r') as f:
-                um_df = json.load(f)
-        except FileNotFoundError:
-            print('Building Yelp user-based utility matrix for the \'' + self.name + '\' dataset')
-            import yelp_utility_matrix_builder_user
+    '''
+    def build_yelp_og_df(self, takes test set csv):
+        returns og_df
+    
+    def build_yelp_item_um(self, og_df, um_file):
+        um_df = None
+        try: 
     '''
             
             

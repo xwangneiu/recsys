@@ -18,16 +18,21 @@ def query_user_item():
     item = int(input("Enter item: "))
     return user, item
 
+#def build_results_table():
+    
+
 def run_ml_test(data_source, test_source, name, data, algo, sim):
-    results_folder = str(algo) + '/'
+    results_folder = str(algo)
     if sim == 'user' or sim == 'item':
         results_folder += '_similarity/'
+    elif sim == 'wnmf':
+        results_folder += '/'
     ds = datasets.TrainingAndTest('MovieLens u1 training/test sets')
     ds.training = datasets.Dataset(
         name,                                              #name
         data_source,                             #original source
         'datasets/ml-100k/utility-matrix/' + str(name) + '_' + str(algo) + '_um.csv',    #utility matrix
-        results_folder + str(name) + '_' + str(algo) + '_sm.csv',            #similarity matrix
+        results_folder + str(name) + '_' + str(algo) + '_' + str(sim) + '_sm.csv',            #similarity matrix
         data,                                                   #data source
         algo,                                                 #algorithm
         sim)                                              #correlation
@@ -35,17 +40,17 @@ def run_ml_test(data_source, test_source, name, data, algo, sim):
         str(name) + ' test set',                                          #name
         test_source)
     if algo == 'item':
-        ds.build_ml_item_predictions_df('item_similarity/' + str(name) + '_' + str(algo) + '_predictions.csv')
+        ds.build_ml_item_predictions_df('item_similarity/' + str(name) + '_' + str(algo)  + '_' + str(sim) + '_predictions.csv')
     elif algo == 'user':
-        ds.build_ml_user_predictions_df('user_similarity/' + str(name) + '_' + str(algo) + '_predictions.csv')
+        ds.build_ml_user_predictions_df('user_similarity/' + str(name) + '_' + str(algo)  + '_' + str(sim) + '_predictions.csv')
     elif algo == 'wnmf':
-        ds.build_ml_wnmf_predictions_df('wnmf/' + str(name) + '_' + str(algo) + '_predictions.csv')
+        ds.build_ml_wnmf_predictions_df('wnmf/' + str(name) + '_' + str(algo) + '_' + str(sim) + '_predictions.csv')
     print('Predictions: ')
     print(ds.test.predictions_df)
     ds.test.calculate_mae()
     ds.test.calculate_rmse()
-    print("MAE: " + str(ml_u1.test.mae))
-    print("RMSE: " + str(ml_u1.test.rmse))
+    print("MAE: " + str(ds.test.mae))
+    print("RMSE: " + str(ds.test.rmse))
     return ds
 
 def main():
@@ -93,8 +98,8 @@ def main():
                     algo_choice = 'user'
                     sim_choice = 'cosine'
                 elif response_ml == 5:
-                    print('Not implemented yet')
-                if response_ml < 4:
+                    print(sorry)
+                if response_ml <= 4:
                     ds = run_ml_test('datasets/ml-100k/u' + str(dataset_choice) + '.base',  #training set source
                                 'datasets/ml-100k/u' + str(dataset_choice) + '.test',       #test set source
                                 'ml_u' + str(dataset_choice),                               #dataset name

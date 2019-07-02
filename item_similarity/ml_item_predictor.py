@@ -124,20 +124,16 @@ def predict(dataset, dest_filename):
                 #also gets sum of the weighted ratings of the top 30
                 sum_abs_correlations = 0
                 sum_weighted_ratings = 0
-                
-        #        if sum_abs_correlations == 0 or sum_weighted_ratings == 0:
-        #            predictions[i] = math.nan
-        #            continue
         
                 for j in range(len(top_30_most_sim)):
                     if not np.isnan(top_30_most_sim[j][1]):
                         sum_abs_correlations += abs(top_30_most_sim[j][1])
                     if not np.isnan(weighted_top_30[j][1]):
                         sum_weighted_ratings += weighted_top_30[j][1]
-                        #print(sum_weighted_ratings)
+                        
                 
-                print('Sum of weighted ratings: ' + str(sum_weighted_ratings))
-                print('Sum of absolute correlations: ' + str(sum_abs_correlations))
+                #print('Sum of weighted ratings: ' + str(sum_weighted_ratings))
+                #print('Sum of absolute correlations: ' + str(sum_abs_correlations))
                 
                 if sum_abs_correlations == 0 or sum_weighted_ratings == 0:
                     prediction = math.nan
