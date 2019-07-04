@@ -6,20 +6,8 @@ Created on Wed Jun 19 15:33:23 2019
 """
 
 import sys
-#WHENEVER WE ADD A NEW ALGORITHM, WE NEED TO ADD PATH OF ANY PYTHON FILES WITH FUNCTIONS WE ARE USING TO THIS LIST OF PATHS
 sys.path.insert(0, '/item_similarity')
-
 import datasets
-
-
-#just asks for a user and an item to input to an algorithm
-def query_user_item():
-    user = int(input("Enter user: "))
-    item = int(input("Enter item: "))
-    return user, item
-
-#def build_results_table():
-    
 
 def run_test(data_source, test_source, name, data, algo, sim):
     results_folder = str(algo)
@@ -37,8 +25,8 @@ def run_test(data_source, test_source, name, data, algo, sim):
         results_folder += '/'
     ds = datasets.TrainingAndTest(data + ' training/test sets')
     ds.training = datasets.Dataset(
-        name,                                              #name
-        data_source,                             #original source
+        name,                                             #name
+        data_source,                                      #original source
         data_utility_dir + str(name) + '_' + str(algo) + '_um.' + filetype,    #utility matrix
         results_folder + str(name) + '_' + str(algo) + '_' + str(sim) + '_sm.' + filetype,            #similarity matrix
         data,                                             #data source
@@ -140,7 +128,7 @@ def main():
                 if response_yelp == 0:
                     run_yelp = False
                     break
-                print('Select MovieLens 100k Test Set 1-5 for Prediction')
+                print('Select Yelp Test Set 1-5 for Prediction')
                 dataset_choice = int(input(": "))
                 if dataset_choice < 1 or dataset_choice > 5:
                     print("Invalid dataset selection")
