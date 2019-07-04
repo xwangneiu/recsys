@@ -64,6 +64,8 @@ def pearson(col1, col2):
     #removes nans from both columns, leaving only corated items
     col1 = col1[~np.isnan(col1)]
     col2 = col2[~np.isnan(col2)]
+    print(col1)
+    print(col2)
 
     
     #if there are no corated values, return 0 to save time
