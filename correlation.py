@@ -203,7 +203,8 @@ def remove_non_corated(col):
     #only for testing formulas
 
 def main():
-    print("nothing to see here")
+    #print("nothing to see here")
+    operation_time()
     
     
 

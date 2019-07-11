@@ -34,9 +34,13 @@ def build(um_df, output_file):
     #change NaNs in r to zero
     r = np.nan_to_num(r)
     
+    model = NMF(n_components=30, init='nndsvd', solver='mu', verbose=True)
+    nmf_w = model.fit_transform(r)
+    nmf_h = model.components_
     
-    print(w)
+    print(nmf_w)
     print(r)
+    #print(nmf_h)
         
     #print(stats.zscore(um[row]))
     

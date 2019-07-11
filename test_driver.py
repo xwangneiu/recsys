@@ -61,7 +61,7 @@ def run_test(data_source, test_source, name, data, algo, sim):
     print("RMSE: " + str(ds.test.rmse))
     return ds
 
-def main():
+def test_driver():
     
     #main Test Driver loop: select a dataset
     run = True
@@ -155,5 +155,8 @@ def main():
                                 algo_choice,                                                #algorithm
                                 sim_choice)                                                 #similarity measure
     
+def main():
+    test_driver()
+
 if __name__ == '__main__':
     main()
