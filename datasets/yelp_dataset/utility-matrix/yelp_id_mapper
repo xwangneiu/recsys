@@ -1,0 +1,35 @@
+# SCSE RecSys Group
+# Minh N.
+# 2019.07.10
+# This creates ids for items and users from json dictionaries
+
+import json
+
+def build_user(um_json, output_json):
+	output_dict = {}
+	with open(um_json,'r') as f:
+		um_dict = json.load(f)
+	for num, x in enumerate(um_dict.keys(), start = 0):
+		output_dict[x] = num
+	with open(output_json, 'w') as f:
+		output_dict = json.dumps(output_dict)
+		f.write(output_dict)
+		f.close()
+
+def build_item(um_json, output_json):
+	output_dict = {}
+	with open(um_json,'r') as f:
+		um_dict = json.load(f)
+	for num, x in enumerate(um_dict.keys(), start = 0):
+		output_dict[x] = num
+	with open(output_json, 'w') as f:
+		output_dict = json.dumps(output_dict)
+		f.write(output_dict)
+		f.close()
+
+def main():
+	build_user('yelp_utility_matrix_uc_user.json', 'yelp_uc_user_id.json')
+	build_item('yelp_utility_matrix_uc_item.json', 'yelp_uc_item_id.json')
+
+if __name__ == '__main__':
+	main()
