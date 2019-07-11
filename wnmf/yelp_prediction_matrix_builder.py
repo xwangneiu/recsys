@@ -12,31 +12,72 @@ import time
 import json
 
 def build(um_dict, user_id_dict, business_id_dict):
-	with open(user_id_dict, 'r') as f:
-		user_id_dict = json.load(f)
-	with open(business_id_dict, 'r') as f:
-		business_id_dict = json.load(f)
-	with open(um_dict, 'r') as f:
-		um_dict = json.load(f)
-	um_dok = sps.dok_matrix((len(user_id_dict),len(business_id_dict)), dtype=np.int8)
-	for key_i, value_i in um_dict.items():
-		for key_j, value_j in value_i.items():
-			um_dok[user_id_dict[key_i], business_id_dict[key_j]] = value_j
-	um_csr = um_dok.tocsr()
-	del um_dok
-	latent_factors = 25 
-	um_u = np.random.random(size = (len(user_id_dict), latent_factors))
-	um_v = np.random.random(size = (latent_factors, len(business_id_dict)))
-	um_csr_u = sps.csr_matrix(um_u)
-	um_csr_v = sps.csr_matrix(um_v)
-	del um_u
-	del um_v
-	print(um_csr_u)
+    print('id dicts loading')
+    with open(user_id_dict, 'r') as f:
+        user_id_dict = json.load(f)
+    with open(business_id_dict, 'r') as f:
+        business_id_dict = json.load(f)
+    print('loading um')
+    with open(um_dict, 'r') as f:
+        um_dict = json.load(f)
+    um_dok = sps.dok_matrix((len(user_id_dict),len(business_id_dict)), dtype=np.int8)
+    for key_i, value_i in um_dict.items():
+        for key_j, value_j in value_i.items():
+            um_dok[user_id_dict[key_i], business_id_dict[key_j]] = value_j
+    a = um_dok.tocsr()
+    del um_dok
+    latent_factors = 25
+    um_u = np.random.random(size = (len(user_id_dict), latent_factors))
+    um_v = np.random.random(size = (latent_factors, len(business_id_dict)))
+    u = sps.csr_matrix(um_u)
+    v = sps.csr_matrix(um_v)
+    del um_u
+    del um_v
+    #print(u)
+
+    #get nonzero rows, columns
+    x, y = a.nonzero()
+
+    #copy um_csr into new sparse matrix
+    w = a.copy()
+    for i, j in zip(x, y):
+        w[i, j] = 1
+
+    i = 0
+    prev_norm = 0
+    curr_norm = 0
+    change = 999999
+    print('starting wnmf loop')
+    while(i < 10 and change > 0.75):
+       print('iteration ' + str(i))
+       #w * a is just a
+       u_i, u_j = u.nonzero()
+       v_i, v_j = v.nonzero()
+
+       for ui, uj, vi, vj in zip(u_i, u_j, v_i, v_j):
+           vt = v.transpose()
+           u_num = a * vt
+           u_denom = w.multiply(u * v) * vt
+           u[ui, uj] = u[ui, uj] * (u_num[ui, uj] / u_denom[ui, uj])
+           ut = u.transpose()
+           v_num = ut * a
+           v_denom = ut * w.multiply(u * v)
+           v[vi, vj] = v[vi, vj] * (v_num[vi, vj] / v_denom[vi, vj])
+       print(u)
+       print(v)
+       i += 1
+
+
+       '''
+       prev_norm = curr_norm
+       curr_norm = norm
+       change = curr_norm - prev_norm
+       '''
 
 def main():
-	t1 = time.time()
-	build('../datasets/yelp_dataset/utility-matrix/yelp_set1_user_um.json', '../datasets/yelp_dataset/utility-matrix/yelp_uc_user_id.json', '../datasets/yelp_dataset/utility-matrix/yelp_uc_item_id.json')
-	print(time.time() - t1)
+    t1 = time.time()
+    build('../datasets/yelp_dataset/utility-matrix/yelp_set1_user_um.json', '../datasets/yelp_dataset/utility-matrix/yelp_uc_user_id.json', '../datasets/yelp_dataset/utility-matrix/yelp_uc_item_id.json')
+    print(time.time() - t1)
 
 if __name__ == '__main__':
-	main()
+    main()
