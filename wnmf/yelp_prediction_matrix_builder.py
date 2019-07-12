@@ -48,25 +48,35 @@ def build(um_dict, user_id_dict, business_id_dict):
     curr_norm = 0
     change = 999999
     print('starting wnmf loop')
+    u_i, u_j = u.nonzero()
+    v_i, v_j = v.nonzero()
     while(i < 10 and change > 0.75):
        print('iteration ' + str(i))
        #w * a is just a
-       u_i, u_j = u.nonzero()
-       v_i, v_j = v.nonzero()
-
-       for ui, uj, vi, vj in zip(u_i, u_j, v_i, v_j):
-           vt = v.transpose()
-           u_num = a * vt
-           u_denom = w.multiply(u * v) * vt
-           u[ui, uj] = u[ui, uj] * (u_num[ui, uj] / u_denom[ui, uj])
-           ut = u.transpose()
-           v_num = ut * a
-           v_denom = ut * w.multiply(u * v)
-           v[vi, vj] = v[vi, vj] * (v_num[vi, vj] / v_denom[vi, vj])
+       
+       #update u
+       #calculate AVt
+       vt = v.transpose()
+       u_num = a * vt
+       u_denom = w.multiply(u * v) * vt
+       for ui, uj in zip(u_i, u_j):
+           print("Old u " + str(ui) + ', ' + str(uj) + ': ' + str(u[ui, uj]))
+           #u_denom = w[ui, :].multiply(u[ui, :] * v) * vt[:, uj]
+           u[ui, uj] = u[ui, uj] * (u_num[ui, uj] / (u_denom[ui, uj] + 0.0000001))
+           print("New u " + str(ui) + ', ' + str(uj)  + ': ' + str(u[ui, uj]))
+       ut = u.transpose()
+       v_num = ut * a
+       v_denom = ut * w.multiply(u * v)
+       for vi, vj in zip(v_i, v_j):
+           print("Old v " + str(vi) + ', ' + str(vj) + ': ' + str(v[vi, vj]))
+           #v_denom = ut * w[:, vj].multiply(u * v[:, vj])
+           v[vi, vj] = v[vi, vj] * (v_num[vi, vj] / (v_denom[vi, vj] + 0.0000001))
+           print("New v" + str(vi) + ', ' + str(vj)  + ': ' + str(v[vi, vj]))
+       print('U:')
        print(u)
+       print('V:')
        print(v)
        i += 1
-
 
        '''
        prev_norm = curr_norm
