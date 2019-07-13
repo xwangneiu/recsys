@@ -27,12 +27,10 @@ def build(um_dict, user_id_dict, business_id_dict):
     a = um_dok.tocsr()
     del um_dok
     latent_factors = 25
-    um_u = np.random.random(size = (len(user_id_dict), latent_factors))
-    um_v = np.random.random(size = (latent_factors, len(business_id_dict)))
-    u = sps.csr_matrix(um_u)
-    v = sps.csr_matrix(um_v)
-    del um_u
-    del um_v
+    u = np.random.random(size = (len(user_id_dict), latent_factors))
+    v = np.random.random(size = (latent_factors, len(business_id_dict)))
+    u = sps.csr_matrix(u)
+    v = sps.csr_matrix(v)
     #print(u)
 
     #get nonzero rows, columns
@@ -78,11 +76,31 @@ def build(um_dict, user_id_dict, business_id_dict):
        print(v)
        i += 1
 
-       '''
+       # This takes two matrices, multiplies by weight, subtracts them, and then finds its norm2 
+
+       # uv = u * v
+       # uv = w.multiply(uv)
+
+       # norm = a - uv
+       # norm = norm.power(2)
+       # norm = math.sqrt(norm)
+
+       # This takes two matricies, find each norm2, multiplies by weight, and then subtracts
+
+       uv = u * v
+       uv = w.multiply(uv)
+
+       a_norm = a.power(2)
+       a_norm = math.sqrt(a_norm)
+       uv_norm = uv.power(2)
+       uv_norm = math.sqrt(uv_norm)
+
+       norm = a_norm - uv_norm
+
        prev_norm = curr_norm
        curr_norm = norm
        change = curr_norm - prev_norm
-       '''
+       
 
 def main():
     t1 = time.time()
