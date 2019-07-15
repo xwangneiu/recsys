@@ -7,6 +7,7 @@ Created on Fri Jul 12 16:04:35 2019
 
 import numpy as np
 import pandas as pd
+import time
 
 
 def build(um_df, output_filename, latent_factors, iterations):
@@ -66,6 +67,7 @@ def build(um_df, output_filename, latent_factors, iterations):
     u_df.to_csv(output_filename + '_u.csv')
     v_df.to_csv(output_filename + '_v.csv')
     return u_df, v_df
+
 def main():
     um_df = pd.read_csv('../datasets/ml-100k/utility-matrix/ml_u1_item_um.csv', index_col = 0)
     u_df, v_df = build(um_df, 'wnmf_test_', 3, 25)

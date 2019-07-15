@@ -83,7 +83,9 @@ def test_driver():
         #MovieLens Dataset test driver loop
         if response_dataset == 1:
             run_ml = True
-            
+            #only relevant to WNMF
+            latent_factors = 3
+            iterations = 25
             #loading item-based matrices only once
             while(run_ml):
                 print('Select Algorithm for MovieLens 100k Data Sets:\n1--Item-Based Pearson 2--Item-Based Cosine 3--User-Based Pearson 4--User-Based Cosine 5--WNMF')
@@ -94,12 +96,7 @@ def test_driver():
                 print('Select MovieLens 100k Test Set 1-5 for Prediction')
                 algo_choice = None
                 sim_choice = None
-                dataset_choice = int(input(": "))
-                
-                #only relevant to WNMF
-                latent_factors = 3
-                iterations = 25
-                
+                dataset_choice = int(input(": "))                
                 if dataset_choice < 1 or dataset_choice > 5:
                     print("Invalid dataset selection")
                 if response_ml == 1:
