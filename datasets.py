@@ -71,7 +71,8 @@ class Dataset:
                 self.sm_df = self.build_yelp_pearson_sm(sm_file) #function returns sim df
             elif sim == 'cosine':
                 self.sm_df = self.build_yelp_cosine_sm(sm_file)
-        
+            elif sim == 'wnmf':
+                self.u_df, self.v_df = self.build_yelp_wnmf_prediction_matrix(sm_file, latent_factors, iterations)
         
         
     #METHODS
@@ -203,6 +204,15 @@ class Dataset:
             print('Building Yelp cosine similarity matrix for the \'' + self.name + '\' dataset') 
             sm_df = ysb.similarity_cosine(self.um_df, sm_file)
         return sm_df
+    
+    def build_yelp_wnmf_prediction_matrix(self, prediction_matrix_file, latent_factors, iterations):
+        u_df = None
+        v_df = None
+        print('Building MovieLens WMNF prediction matrix for the \'' + self.name + '\' dataset')
+        from wnmf import yelp_prediction_matrix_builder as pmb
+        u_df, v_df = pmb.build(self.um_df, prediction_matrix_file, latent_factors, iterations, 'datasets/yelp_dataset/utility-matrix/yelp_uc_user_id.json', 'datasets/yelp_dataset/utility-matrix/yelp_uc_item_id.json')
+        print('WNMF prediction matrix ready')
+        return u_df, v_df
 
 #Class for training/test set pairs
 #TestSet subclass inherits from Dataset superclass
@@ -358,6 +368,18 @@ class TrainingAndTest:
             #note that the below um_df and sm_df are really dictionaries
             predictions_df = yup.predict(self.training.um_df, self.training.sm_df, self.test.og_df, predictions_file)
             print('Predictions saved at ' + predictions_file)
+        self.test.predictions_df = predictions_df
+        print('Prediction results ready (test.predictions_df)')
+        print(predictions_df)
+        return predictions_df
+    
+    def build_yelp_wnmf_predictions_df(self, predictions_file):
+        predictions_df = None
+        print('Running Yelp predictor on given training set')
+        from wnmf import yelp_wnmf_predictor as ywp
+        #note that the below um_df and sm_df are really dictionaries
+        predictions_df = ywp.predict(self.training.u_df, self.training.v_df, self.test.og_df, predictions_file, 'datasets/yelp_dataset/utility-matrix/yelp_uc_user_id.json', 'datasets/yelp_dataset/utility-matrix/yelp_uc_item_id.json')
+        print('Predictions saved at ' + predictions_file)
         self.test.predictions_df = predictions_df
         print('Prediction results ready (test.predictions_df)')
         print(predictions_df)

@@ -8,6 +8,7 @@ Created on Wed Jun 19 15:33:23 2019
 import sys
 sys.path.insert(0, '/item_similarity')
 import datasets
+import time
 
 def run_test(data_source, test_source, name, data, algo, sim, latent_factors, iterations):
     results_folder = str(algo)
@@ -33,8 +34,7 @@ def run_test(data_source, test_source, name, data, algo, sim, latent_factors, it
         algo,                                             #algorithm
         sim,
         latent_factors,
-        iterations
-        )
+        iterations)
     ds.test = datasets.TestSet(
         str(name) + ' test set',                                          #name
         test_source, data)
@@ -119,6 +119,7 @@ def test_driver():
                         latent_factors = int(input('Latent factors: '))
                         iterations = int(input('Iterations: '))
                 if response_ml <= 5:
+                    t1 = time.time()
                     ds = run_test('datasets/ml-100k/u' + str(dataset_choice) + '.base',  #training set source
                                 'datasets/ml-100k/u' + str(dataset_choice) + '.test',       #test set source
                                 'ml_u' + str(dataset_choice),                               #dataset name
@@ -127,9 +128,12 @@ def test_driver():
                                 sim_choice,                                                 #similarity measure
                                 latent_factors,
                                 iterations)  
+                    print('Run time: ' + str(time.time() - t1) + ' sec')
         #Yelp Dataset test driver loop
         elif response_dataset == 2:
             run_yelp = True
+            latent_factors = 3
+            iterations = 25
             while(run_yelp):
                 print('Select Algorithm for Yelp Champaign-Urbana Data Sets:\n1--Item-Based Pearson 2--Item-Based Cosine 3--User-Based Pearson 4--User-Based Cosine 5--WNMF')
                 algo_choice = None
@@ -156,14 +160,19 @@ def test_driver():
                     algo_choice = 'user'
                     sim_choice = 'cosine'
                 elif response_yelp == 5:
-                    print(sorry)
+                    algo_choice = 'wnmf'
+                    sim_choice = 'wnmf'
                 if response_yelp <= 5:
+                    t1 = time.time()
                     ds = run_test('datasets/yelp_dataset/yelp_review_uc_training_' + str(dataset_choice) + '.csv',  #training set source
                                 'datasets/yelp_dataset/yelp_review_uc_testing_' + str(dataset_choice) + '.csv',       #test set source
                                 'yelp_set' + str(dataset_choice),                               #dataset name
                                 'yelp',                                                       #type of data
                                 algo_choice,                                                #algorithm
-                                sim_choice)                                                 #similarity measure
+                                sim_choice,
+                                latent_factors,
+                                iterations)
+                    print('Run time: ' + str(time.time() - t1) + ' sec')
     
 def main():
     test_driver()
