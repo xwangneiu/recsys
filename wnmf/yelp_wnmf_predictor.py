@@ -23,7 +23,6 @@ def predict(u_df, v_df, test_set, output_file_path, user_id_dict, business_id_di
         business_id_dict = json.load(f)
     print('loading um')
     
-    
     u = u_df.to_numpy()
     v = v_df.to_numpy()
     print(u)
