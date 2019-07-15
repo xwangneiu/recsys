@@ -31,7 +31,7 @@ def build(um_df, output_filename, latent_factors, iterations):
     curr_norm = 0
     change = 999999
     print('starting wnmf loop')
-    while(iteration < iterations and change > 0.01):
+    while(iteration < iterations and change > 0.75):
         print('iteration ' + str(iteration))
         #update u
         vt = v.T #1650 x 25

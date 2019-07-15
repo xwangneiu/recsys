@@ -141,13 +141,9 @@ class Dataset:
     def build_ml_wnmf_prediction_matrix(self, prediction_matrix_file, latent_factors, iterations):
         u_df = None
         v_df = None
-        try:
-            u_df = pd.read_csv('u_ ' + prediction_matrix_file, index_col = 0)
-            v_df = pd.read_csv('v_ ' + prediction_matrix_file, index_col = 0)
-        except FileNotFoundError:
-            print('Building MovieLens WMNF prediction matrix for the \'' + self.name + '\' dataset')
-            from wnmf import ml_wnmf_prediction_matrix_builder as pmb
-            u_df, v_df = pmb.build(self.um_df, prediction_matrix_file, latent_factors, iterations)
+        print('Building MovieLens WMNF prediction matrix for the \'' + self.name + '\' dataset')
+        from wnmf import ml_wnmf_prediction_matrix_builder as pmb
+        u_df, v_df = pmb.build(self.um_df, prediction_matrix_file, latent_factors, iterations)
         print('WNMF prediction matrix ready')
         return u_df, v_df
     
