@@ -12,6 +12,11 @@ import time
 import json
 import pandas as pd
 
+def read_dict(um_dict):
+    with open(um_dict, 'r') as f:
+        um_dict = json.load(f)
+    return um_dict
+
 def build(um_dict, output_filename, latent_factors, wnmf_iterations, user_id_dict, business_id_dict):
     print('id dicts loading')
     with open(user_id_dict, 'r') as f:
@@ -19,14 +24,12 @@ def build(um_dict, output_filename, latent_factors, wnmf_iterations, user_id_dic
     with open(business_id_dict, 'r') as f:
         business_id_dict = json.load(f)
     print('loading um')
-    with open(um_dict, 'r') as f:
-        um_dict = json.load(f)
     um_dok = sps.dok_matrix((len(user_id_dict),len(business_id_dict)), dtype=np.int8)
     for key_i, value_i in um_dict.items():
         for key_j, value_j in value_i.items():
             um_dok[user_id_dict[key_i], business_id_dict[key_j]] = value_j
     a = um_dok.tocsr()
-    del um_dok
+    del um_dict
     u = np.random.random(size = (len(user_id_dict), latent_factors))
     v = np.random.random(size = (latent_factors, len(business_id_dict)))
     u = sps.csr_matrix(u)
@@ -112,7 +115,8 @@ def build(um_dict, output_filename, latent_factors, wnmf_iterations, user_id_dic
 
 def main():
     t1 = time.time()
-    build('../datasets/yelp_dataset/utility-matrix/yelp_set1_user_um.json', 'wmnf_matrix', 10, 50,'../datasets/yelp_dataset/utility-matrix/yelp_uc_user_id.json', '../datasets/yelp_dataset/utility-matrix/yelp_uc_item_id.json')
+    um = read_dict('../datasets/yelp_dataset/utility-matrix/yelp_set1_user_um.json')
+    build(um, 'wmnf_matrix', 10, 50,'../datasets/yelp_dataset/utility-matrix/yelp_uc_user_id.json', '../datasets/yelp_dataset/utility-matrix/yelp_uc_item_id.json')
     print(time.time() - t1)
 
 if __name__ == '__main__':
