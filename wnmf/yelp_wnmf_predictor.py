@@ -42,7 +42,7 @@ def predict(u_df, v_df, test_set, output_file_path, user_id_dict, business_id_di
         except KeyError:
             prediction = math.nan
 
-        print("User: " + str(user) + " Item: " + str(item) + " Prediction: " + str(prediction))
+        print("User: " + str(user) + " Business: " + str(business) + " Prediction: " + str(prediction))
         test_set.at[num, 'prediction'] = prediction
         
     print(test_set)
