@@ -105,7 +105,7 @@ def build(um_dict, output_filename, latent_factors, wnmf_iterations, user_id_dic
     u = u.toarray()
     u = pd.DataFrame(u)
     v = v.toarray()
-    v = pd.DataFrame(u)
+    v = pd.DataFrame(v)
     u.to_csv((output_filename + 'u.csv'))
     v.to_csv((output_filename + 'v.csv'))
     return(u, v)
