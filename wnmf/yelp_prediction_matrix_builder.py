@@ -77,26 +77,13 @@ def build(um_dict, output_filename, latent_factors, wnmf_iterations, user_id_dic
 
        # This takes two matrices, multiplies by weight, subtracts them, and then finds its norm2 
 
-       # uv = u * v
-       # uv = w.multiply(uv)
-
-       # norm = a - uv
-       # norm = norm.power(2)
-       # norm = norm.sum()
-       # norm = math.sqrt(norm)
-
-       # This takes two matricies, find each norm2, multiplies by weight, and then subtracts
-
        uv = u * v
        uv = w.multiply(uv)
 
-       a_norm = a.power(2)
-       a_norm = a_norm.sum()
-       a_norm = math.sqrt(a_norm)
-       uv_norm = uv.power(2)
-       uv_norm = uv_norm.sum()
-       uv_norm = math.sqrt(uv_norm)
-
+       norm = a - uv
+       norm = norm.power(2)
+       norm = norm.sum()
+       norm = math.sqrt(norm)
        norm = a_norm - uv_norm
 
        prev_norm = curr_norm
