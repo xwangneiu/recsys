@@ -161,7 +161,11 @@ def test_driver():
                     sim_choice = 'cosine'
                 elif response_yelp == 5:
                     algo_choice = 'wnmf'
-                    sim_choice = 'wnmf'
+                    sim_choice = 'wnmf'  
+                    change_params = input('Would you like to change the current setting for the number of latent factors (' + str(latent_factors) + ') or iterations (' + str(iterations) + '), y/n? ')
+                    if change_params == 'y':
+                        latent_factors = int(input('Latent factors: '))
+                        iterations = int(input('Iterations: '))
                 if response_yelp <= 5:
                     t1 = time.time()
                     ds = run_test('datasets/yelp_dataset/yelp_review_uc_training_' + str(dataset_choice) + '.csv',  #training set source

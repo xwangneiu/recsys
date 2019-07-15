@@ -66,7 +66,7 @@ class Dataset:
             elif algo == 'user':
                 self.um_df = self.build_yelp_user_um(um_file) #function returns um df
             elif algo == 'wnmf':
-                self.um_df = self.build_yelp_item_um(um_file)
+                self.um_df = self.build_yelp_user_um(um_file)
             if sim == 'pearson':
                 self.sm_df = self.build_yelp_pearson_sm(sm_file) #function returns sim df
             elif sim == 'cosine':
