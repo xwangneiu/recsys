@@ -33,10 +33,15 @@ class Dataset:
     #similarity matrix dataframe
     sm_df = None    
     
+    #WNMF u/v decomposed prediction matrix
+    u_df = None
+    v_df = None
+    
     #CONSTRUCTOR
     #og - original data; um - utility matrix; sm - similarity matrix
     #Keyword Arguments: data=ml,yelp; algo=item,user,wnmf; sim=pearson,cosine,wnmf
-    def __init__(self, name, og_file, um_file, sm_file, data, algo, sim):
+    #latent_factors and iterations are for wnmf
+    def __init__(self, name, og_file, um_file, sm_file, data, algo, sim, latent_factors = 3, iterations = 25):
         self.name = name
         print(name + ' is being prepared...')
         if data == 'ml':
@@ -47,11 +52,13 @@ class Dataset:
                 self.um_df = self.build_ml_user_um(um_file) #function returns um df
                 print(self.um_df)
             elif algo == 'wnmf':
-                self.um_df = self.build_ml_wnmf_um(um_file)
+                self.um_df = self.build_ml_item_um(um_file)
             if sim == 'pearson':
                     self.sm_df = self.build_ml_pearson_sm(sm_file) #function returns sim df
             elif sim == 'cosine':
                     self.sm_df = self.build_ml_cosine_sm(sm_file)
+            elif sim == 'wnmf':
+                    self.u_df, self.v_df = self.build_ml_wnmf_prediction_matrix(sm_file, latent_factors, iterations)
         elif data == 'yelp':
             self.og_df = self.build_yelp_og_df(og_file)
             if algo == 'item':
@@ -59,7 +66,7 @@ class Dataset:
             elif algo == 'user':
                 self.um_df = self.build_yelp_user_um(um_file) #function returns um df
             elif algo == 'wnmf':
-                self.um_df = self.build_yelp_wnmf_um(um_file)
+                self.um_df = self.build_yelp_item_um(um_file)
             if sim == 'pearson':
                 self.sm_df = self.build_yelp_pearson_sm(sm_file) #function returns sim df
             elif sim == 'cosine':
@@ -130,7 +137,20 @@ class Dataset:
         print('MovieLens cosine similarity matrix ready (sm_df)')
         #print(sm_df)
         return sm_df
-
+    
+    def build_ml_wnmf_prediction_matrix(self, prediction_matrix_file, latent_factors, iterations):
+        u_df = None
+        v_df = None
+        try:
+            u_df = pd.read_csv('u_ ' + prediction_matrix_file, index_col = 0)
+            v_df = pd.read_csv('v_ ' + prediction_matrix_file, index_col = 0)
+        except FileNotFoundError:
+            print('Building MovieLens WMNF prediction matrix for the \'' + self.name + '\' dataset')
+            from wnmf import ml_wnmf_prediction_matrix_builder as pmb
+            u_df, v_df = pmb.build(self.um_df, prediction_matrix_file, latent_factors, iterations)
+        print('WNMF prediction matrix ready')
+        return u_df, v_df
+    
     #YELP
     
     def build_yelp_og_df(self, og_file):
@@ -273,7 +293,7 @@ class TrainingAndTest:
     def build_ml_item_predictions_df(self, predictions_file):
         predictions_df = None
         try:
-            predictions_df = pd.read_csv(predictions_file, index_col=0)
+            predictions_df = pd.read_csv(predictions_file, index_col = 0)
             print('Prediction results from test set loaded from file (test.predictions_df)')
         except FileNotFoundError:
             print('Running predictor on given training set')
@@ -288,7 +308,7 @@ class TrainingAndTest:
     def build_ml_user_predictions_df(self, predictions_file):
         predictions_df = None
         try:
-            predictions_df = pd.read_csv(predictions_file, index_col=0)
+            predictions_df = pd.read_csv(predictions_file, index_col = 0)
             print('Prediction results from test set loaded from file (test.predictions_df)')
         except FileNotFoundError:
             print('Running predictor on given training set')
@@ -300,10 +320,25 @@ class TrainingAndTest:
         print(predictions_df)
         return predictions_df
     
+    def build_ml_wnmf_predictions_df(self, predictions_file):
+        predictions_df = None
+        try:
+            predictions_df = pd.read_csv(predictions_file, index_col = 0)
+            print('Prediction results from test set loaded from file (test.predictions_df)')
+        except FileNotFoundError:
+            print('Running WNMF predictor on given training set')
+            from wnmf import ml_wnmf_predictor as mwp
+            predictions_df = mwp.predict(self, predictions_file)
+            print('Predictions saved at ' + predictions_file)
+        self.test.predictions_df = predictions_df
+        print('Prediction results ready (test.predictions_df)')
+        print(predictions_df)
+        return predictions_df
+    
     def build_yelp_item_predictions_df(self, predictions_file):
         predictions_df = None
         try:
-            predictions_df = pd.read_csv(predictions_file, index_col=0)
+            predictions_df = pd.read_csv(predictions_file, index_col = 0)
             print('Prediction results from Yelp test set loaded from file (test.predictions_df)')
         except FileNotFoundError:
             print('Running Yelp predictor on given training set')

@@ -10,6 +10,8 @@ import pandas as pd
 import math
 import sys
 sys.path.insert(0, '../')
+import os
+import datasets
 
 def get_index_dicts(training_um_df):
     user_indices = training_um_df.index.to_numpy()
@@ -29,7 +31,13 @@ def get_index_dicts(training_um_df):
 
     return uid_to_index, iid_to_index
 #takes: a U factor resulting from WNMF of a training set utility matrix; a V factor resulting from WNMF of a training set utlity 
-def predict(training_um_df, training_u_df, training_v_df, test_og_df, users_and_items, dest_filename):
+def predict(dataset, dest_filename):
+    training_um_df = dataset.training.um_df
+    training_u_df = dataset.training.u_df
+    training_v_df = dataset.training.v_df
+    test_og_df = dataset.test.og_df
+    users_and_items = dataset.test.user_item_pairs_df
+    
     u = training_u_df.to_numpy()
     v = training_v_df.to_numpy()
     print(u)
@@ -69,28 +77,7 @@ def predict(training_um_df, training_u_df, training_v_df, test_og_df, users_and_
     
     
 def main():
-    #get test_og and users/items df
-    users_and_items = pd.read_csv('../datasets/ml-100k/u1.test', sep='\t', header=None)
-    users_and_items.columns = ['user', 'item', 'observed', 'timestamp']
-    del users_and_items['timestamp']
-    test_og_df = pd.DataFrame.copy(users_and_items)
-    del users_and_items['observed']
-    
-    training_um_df = pd.read_csv('../datasets/ml-100k/utility-matrix/ml_u1_item_um.csv', index_col = 0)
-    print(training_um_df)
-    
-    import ml_prediction_matrix_builder as mlpmb
-    u_df, v_df = mlpmb.build(training_um_df, 'wnmf_predictor_test_')
-    '''
-    u_df = pd.read_csv('wnmf_test_u_matrix.csv', index_col = 0)
-    v_df = pd.read_csv('wnmf_test_v_matrix.csv', index_col = 0)
-    '''
-    predictions_df = predict(training_um_df, u_df, v_df, test_og_df, users_and_items, 'wnmf_first_test_results.csv')
-    
-    
-    from item_similarity import prediction_error_mae as mae
-    print("MAE: ")
-    mae.calculate_mae(predictions_df)
+    print('nothing here yet')
     
 
 if __name__ == '__main__':

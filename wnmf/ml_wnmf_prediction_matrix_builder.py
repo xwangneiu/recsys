@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 
-def build(um_df, output_file_prefix):
+def build(um_df, output_filename, latent_factors, iterations):
     um = um_df.to_numpy()
     
     #original utility matrix 
@@ -21,8 +21,6 @@ def build(um_df, output_file_prefix):
         for j in range(len(a[i])):
             if a[i][j] != 0:
                 w[i][j] = 1        
-    
-    latent_factors = 3
 
     #factor matrix initialization
     u = np.random.rand(len(a), latent_factors)
@@ -33,7 +31,7 @@ def build(um_df, output_file_prefix):
     curr_norm = 0
     change = 999999
     print('starting wnmf loop')
-    while(iteration < 25 and change > 0.01):
+    while(iteration < iterations and change > 0.01):
         print('iteration ' + str(iteration))
         #update u
         vt = v.T #1650 x 25
@@ -65,12 +63,12 @@ def build(um_df, output_file_prefix):
     print(uv)
     u_df = pd.DataFrame(u)
     v_df = pd.DataFrame(v)
-    u_df.to_csv(output_file_prefix + 'u_matrix.csv')
-    v_df.to_csv(output_file_prefix + 'v_matrix.csv')
+    u_df.to_csv(output_filename + '_u.csv')
+    v_df.to_csv(output_filename + '_v.csv')
     return u_df, v_df
 def main():
     um_df = pd.read_csv('../datasets/ml-100k/utility-matrix/ml_u1_item_um.csv', index_col = 0)
-    u_df, v_df = build(um_df, 'wnmf_test_')
+    u_df, v_df = build(um_df, 'wnmf_test_', 3, 25)
 
 if __name__ == '__main__':
     main()

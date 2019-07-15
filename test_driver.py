@@ -9,7 +9,7 @@ import sys
 sys.path.insert(0, '/item_similarity')
 import datasets
 
-def run_test(data_source, test_source, name, data, algo, sim):
+def run_test(data_source, test_source, name, data, algo, sim, latent_factors, iterations):
     results_folder = str(algo)
     data_utility_dir = None
     filetype = None
@@ -28,10 +28,13 @@ def run_test(data_source, test_source, name, data, algo, sim):
         name,                                             #name
         data_source,                                      #original source
         data_utility_dir + str(name) + '_' + str(algo) + '_um.' + filetype,    #utility matrix
-        results_folder + str(name) + '_' + str(algo) + '_' + str(sim) + '_sm.' + filetype,            #similarity matrix
+        results_folder + str(name) + '_' + str(algo) + '_' + str(sim) + '_sm.' + filetype,            #similarity matrix (or u and v matrices filename after u_ and v_ respectively)
         data,                                             #data source
         algo,                                             #algorithm
-        sim)                                              #correlation
+        sim,
+        latent_factors,
+        iterations
+        )
     ds.test = datasets.TestSet(
         str(name) + ' test set',                                          #name
         test_source, data)
@@ -92,12 +95,16 @@ def test_driver():
                 algo_choice = None
                 sim_choice = None
                 dataset_choice = int(input(": "))
+                
+                #only relevant to WNMF
+                latent_factors = 3
+                iterations = 25
+                
                 if dataset_choice < 1 or dataset_choice > 5:
                     print("Invalid dataset selection")
                 if response_ml == 1:
                     algo_choice = 'item'
                     sim_choice = 'pearson'
-                #query item-based MovieLens predictor
                 elif response_ml == 2:
                     algo_choice = 'item'
                     sim_choice = 'cosine'
@@ -108,15 +115,21 @@ def test_driver():
                     algo_choice = 'user'
                     sim_choice = 'cosine'
                 elif response_ml == 5:
-                    print(sorry)
+                    algo_choice = 'wnmf'
+                    sim_choice = 'wnmf'  
+                    change_params = input('Would you like to change the current setting for the number of latent factors (' + str(latent_factors) + ') or iterations (' + str(iterations) + '), y/n? ')
+                    if change_params == 'y':
+                        latent_factors = int(input('Latent factors: '))
+                        iterations = int(input('Iterations: '))
                 if response_ml <= 5:
                     ds = run_test('datasets/ml-100k/u' + str(dataset_choice) + '.base',  #training set source
                                 'datasets/ml-100k/u' + str(dataset_choice) + '.test',       #test set source
                                 'ml_u' + str(dataset_choice),                               #dataset name
                                 'ml',                                                       #type of data
                                 algo_choice,                                                #algorithm
-                                sim_choice)                                                 #similarity measure
-                    
+                                sim_choice,                                                 #similarity measure
+                                latent_factors,
+                                iterations)  
         #Yelp Dataset test driver loop
         elif response_dataset == 2:
             run_yelp = True
