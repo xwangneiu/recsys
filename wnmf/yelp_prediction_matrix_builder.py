@@ -48,7 +48,7 @@ def build(um_dict, user_id_dict, business_id_dict):
     print('starting wnmf loop')
     u_i, u_j = u.nonzero()
     v_i, v_j = v.nonzero()
-    while(i < 10 and change > 0.75):
+    while(i < 50 and change > 0.75):
        print('iteration ' + str(i))
        vt = v.transpose()
        u_num = a * vt
@@ -96,11 +96,10 @@ def build(um_dict, user_id_dict, business_id_dict):
 
        norm = a_norm - uv_norm
 
-       print(prev_norm)
        prev_norm = curr_norm
-       print(norm)
        curr_norm = norm
-       change = curr_norm - prev_norm
+       change = math.fabs(curr_norm - prev_norm)
+       print(change)
        
 
 def main():
