@@ -52,10 +52,6 @@ def build(um_dict, user_id_dict, business_id_dict):
     v_i, v_j = v.nonzero()
     while(i < 10 and change > 0.75):
        print('iteration ' + str(i))
-       #w * a is just a
-       
-       #update u
-       #calculate AVt
        vt = v.transpose()
        u_num = a * vt
        u_denom = w.multiply(u * v) * vt
