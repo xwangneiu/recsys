@@ -26,7 +26,7 @@ def build(um_dict, user_id_dict, business_id_dict):
             um_dok[user_id_dict[key_i], business_id_dict[key_j]] = value_j
     a = um_dok.tocsr()
     del um_dok
-    latent_factors = 25
+    latent_factors = 10
     u = np.random.random(size = (len(user_id_dict), latent_factors))
     v = np.random.random(size = (latent_factors, len(business_id_dict)))
     u = sps.csr_matrix(u)
@@ -54,22 +54,22 @@ def build(um_dict, user_id_dict, business_id_dict):
        u_num = a * vt
        u_denom = w.multiply(u * v) * vt
        for ui, uj in zip(u_i, u_j):
-           print("Old u " + str(ui) + ', ' + str(uj) + ': ' + str(u[ui, uj]))
+           # print("Old u " + str(ui) + ', ' + str(uj) + ': ' + str(u[ui, uj]))
            #u_denom = w[ui, :].multiply(u[ui, :] * v) * vt[:, uj]
            u[ui, uj] = u[ui, uj] * (u_num[ui, uj] / (u_denom[ui, uj] + 0.0000001))
-           print("New u " + str(ui) + ', ' + str(uj)  + ': ' + str(u[ui, uj]))
+           # print("New u " + str(ui) + ', ' + str(uj)  + ': ' + str(u[ui, uj]))
        ut = u.transpose()
        v_num = ut * a
        v_denom = ut * w.multiply(u * v)
        for vi, vj in zip(v_i, v_j):
-           print("Old v " + str(vi) + ', ' + str(vj) + ': ' + str(v[vi, vj]))
+           # print("Old v " + str(vi) + ', ' + str(vj) + ': ' + str(v[vi, vj]))
            #v_denom = ut * w[:, vj].multiply(u * v[:, vj])
            v[vi, vj] = v[vi, vj] * (v_num[vi, vj] / (v_denom[vi, vj] + 0.0000001))
-           print("New v" + str(vi) + ', ' + str(vj)  + ': ' + str(v[vi, vj]))
-       print('U:')
-       print(u)
-       print('V:')
-       print(v)
+           # print("New v" + str(vi) + ', ' + str(vj)  + ': ' + str(v[vi, vj]))
+       # print('U:')
+       # print(u)
+       # print('V:')
+       # print(v)
        i += 1
 
        # This takes two matrices, multiplies by weight, subtracts them, and then finds its norm2 
@@ -79,6 +79,7 @@ def build(um_dict, user_id_dict, business_id_dict):
 
        # norm = a - uv
        # norm = norm.power(2)
+       # norm = norm.sum()
        # norm = math.sqrt(norm)
 
        # This takes two matricies, find each norm2, multiplies by weight, and then subtracts
@@ -87,13 +88,17 @@ def build(um_dict, user_id_dict, business_id_dict):
        uv = w.multiply(uv)
 
        a_norm = a.power(2)
+       a_norm = a_norm.sum()
        a_norm = math.sqrt(a_norm)
        uv_norm = uv.power(2)
+       uv_norm = uv_norm.sum()
        uv_norm = math.sqrt(uv_norm)
 
        norm = a_norm - uv_norm
 
+       print(prev_norm)
        prev_norm = curr_norm
+       print(norm)
        curr_norm = norm
        change = curr_norm - prev_norm
        
