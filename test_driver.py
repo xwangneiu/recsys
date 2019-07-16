@@ -97,17 +97,16 @@ def automated_wnmf_test():
     for d in datasets:
         for f in latent_factors:
             for i in range(1, 31):
-                for reps in range(0, 5):
-                    ds, log_entry = run_test('datasets/ml-100k/u' + str(d) + '.base',  #training set source
-                                        'datasets/ml-100k/u' + str(d) + '.test',       #test set source
-                                        'ml_u' + str(d),                               #dataset name
-                                        'ml',                                                       #type of data
-                                        'wnmf', #algo                                                #algorithm
-                                        'wnmf', #sim                                                #similarity measure
-                                        f,  #latent factors
-                                        i)  #iterations
-                    data_source = 'ml'
-                    record_in_log_file(data_source, 'wnmf', 'wnmf', log_entry)
+                ds, log_entry = run_test('datasets/ml-100k/u' + str(d) + '.base',  #training set source
+                                    'datasets/ml-100k/u' + str(d) + '.test',       #test set source
+                                    'ml_u' + str(d),                               #dataset name
+                                    'ml',                                                       #type of data
+                                    'wnmf', #algo                                                #algorithm
+                                    'wnmf', #sim                                                #similarity measure
+                                    f,  #latent factors
+                                    i)  #iterations
+                data_source = 'ml'
+                record_in_log_file(data_source, 'wnmf', 'wnmf', log_entry)
                 
 
 
