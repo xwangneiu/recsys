@@ -37,6 +37,9 @@ class Dataset:
     u_df = None
     v_df = None
     
+    #Log data from WNMF predictor to output actual number of iterations and final change in norm
+    predictor_log = None
+    
     #CONSTRUCTOR
     #og - original data; um - utility matrix; sm - similarity matrix
     #Keyword Arguments: data=ml,yelp; algo=item,user,wnmf; sim=pearson,cosine,wnmf
@@ -144,8 +147,9 @@ class Dataset:
         v_df = None
         print('Building MovieLens WMNF prediction matrix for the \'' + self.name + '\' dataset')
         from wnmf import ml_wnmf_prediction_matrix_builder as pmb
-        u_df, v_df = pmb.build(self.um_df, prediction_matrix_file, latent_factors, iterations)
+        u_df, v_df, log = pmb.build(self.um_df, prediction_matrix_file, latent_factors, iterations)
         print('WNMF prediction matrix ready')
+        self.predictor_log = log
         return u_df, v_df
     
     #YELP
@@ -210,7 +214,8 @@ class Dataset:
         v_df = None
         print('Building MovieLens WMNF prediction matrix for the \'' + self.name + '\' dataset')
         from wnmf import yelp_prediction_matrix_builder as pmb
-        u_df, v_df = pmb.build(self.um_df, prediction_matrix_file, latent_factors, iterations, 'datasets/yelp_dataset/utility-matrix/yelp_uc_user_id.json', 'datasets/yelp_dataset/utility-matrix/yelp_uc_item_id.json')
+        u_df, v_df, log = pmb.build(self.um_df, prediction_matrix_file, latent_factors, iterations, 'datasets/yelp_dataset/utility-matrix/yelp_uc_user_id.json', 'datasets/yelp_dataset/utility-matrix/yelp_uc_item_id.json')
+        self.predictor_log = log
         print('WNMF prediction matrix ready')
         return u_df, v_df
 

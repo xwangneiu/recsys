@@ -32,7 +32,7 @@ def build(um_df, output_filename, latent_factors, iterations):
     curr_norm = 0
     change = 999999
     print('starting wnmf loop')
-    while(iteration < iterations and change > 0.5):
+    while(iteration < iterations and change > 0.001):
         print('iteration ' + str(iteration))
         #update u
         vt = v.T #1650 x 25
@@ -66,7 +66,9 @@ def build(um_df, output_filename, latent_factors, iterations):
     v_df = pd.DataFrame(v)
     u_df.to_csv(output_filename + '_u.csv')
     v_df.to_csv(output_filename + '_v.csv')
-    return u_df, v_df
+    #actual number of iterations and final change between norm of each iteration
+    log_data = str(iteration) + ',' + str(change)
+    return u_df, v_df, log_data
 
 def main():
     um_df = pd.read_csv('../datasets/ml-100k/utility-matrix/ml_u1_item_um.csv', index_col = 0)

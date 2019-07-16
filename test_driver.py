@@ -11,6 +11,7 @@ import datasets
 import time
 
 def run_test(data_source, test_source, name, data, algo, sim, latent_factors, iterations):
+    t1 = time.time()
     results_folder = str(algo)
     data_utility_dir = None
     filetype = None
@@ -62,10 +63,55 @@ def run_test(data_source, test_source, name, data, algo, sim, latent_factors, it
         ds.test.calculate_yelp_rmse()
     print("MAE: " + str(ds.test.mae))
     print("RMSE: " + str(ds.test.rmse))
-    return ds
+    print('Run time: ' + str(time.time() - t1) + ' sec')
+    log_entry = str(t1) + ',' + name + ',' + data + ',' + algo + ',' + sim + ',' + str(latent_factors) + ',' + str(ds.training.predictor_log) + ',' + str(time.time() - t1) + ',' + str(ds.test.mae) + ',' + str(ds.test.rmse) + ',\n'
+    return ds, log_entry
+
+def record_in_log_file(data, algo, sim, log_entry, log_name=''):
+    filename = ''
+    if algo == 'item' or algo == 'user':
+        filename += algo + '_similarity/'
+    elif algo == 'wnmf':
+        filename += 'wnmf/'
+    header = 'Timestamp,Data Set,Data Source,Algorithm,Similarity Measure,Latent Factors,Iterations,Final Change,Runtime,MAE,RMSE,\n'
+    print("about to add to logs: " + log_entry)
+    
+    date = time.strftime('%Y_%d_%b')
+    filename += data + '_' + date + '_test_logs_' + log_name + '.csv'
+    try:
+        f = open(filename, 'r')
+        f.close()
+        f = open(filename, 'a')
+        f.write(log_entry)
+        f.close()
+    except FileNotFoundError:
+        f = open(filename, 'w')
+        f.write(header + log_entry)
+        f.close()    
+    print (filename)
+
+def automated_wnmf_test():
+    print('nothing here yet')
+    datasets = [1, 2, 3, 4, 5]
+    latent_factors = [1, 2, 3, 4, 5, 7, 10, 12, 15, 20, 25, 30, 40, 50]
+    iterations = [i for i in range(1, 31)]
+    for d in datasets:
+        for f in latent_factors:
+            for i in iterations:
+                ds, log_entry = run_test('datasets/ml-100k/u' + str(d) + '.base',  #training set source
+                                    'datasets/ml-100k/u' + str(d) + '.test',       #test set source
+                                    'ml_u' + str(d),                               #dataset name
+                                    'ml',                                                       #type of data
+                                    'wnmf', #algo                                                #algorithm
+                                    'wnmf', #sim                                                #similarity measure
+                                    f,  #latent factors
+                                    i)  #iterations
+                data_source = 'ml'
+                record_in_log_file(data_source, 'wnmf', 'wnmf', log_entry)
+                
+
 
 def test_driver():
-    
     #main Test Driver loop: select a dataset
     run = True
     sorry = 'Sorry, test driver not implemented yet for this algorithm\n'
@@ -119,16 +165,16 @@ def test_driver():
                         latent_factors = int(input('Latent factors: '))
                         iterations = int(input('Iterations: '))
                 if response_ml <= 5:
-                    t1 = time.time()
-                    ds = run_test('datasets/ml-100k/u' + str(dataset_choice) + '.base',  #training set source
+                    ds, log_entry = run_test('datasets/ml-100k/u' + str(dataset_choice) + '.base',  #training set source
                                 'datasets/ml-100k/u' + str(dataset_choice) + '.test',       #test set source
                                 'ml_u' + str(dataset_choice),                               #dataset name
                                 'ml',                                                       #type of data
                                 algo_choice,                                                #algorithm
                                 sim_choice,                                                 #similarity measure
                                 latent_factors,
-                                iterations)  
-                    print('Run time: ' + str(time.time() - t1) + ' sec')
+                                iterations)
+                    data_source = 'ml'
+                    record_in_log_file(data_source, algo_choice, sim_choice, log_entry)
         #Yelp Dataset test driver loop
         elif response_dataset == 2:
             run_yelp = True
@@ -167,8 +213,7 @@ def test_driver():
                         latent_factors = int(input('Latent factors: '))
                         iterations = int(input('Iterations: '))
                 if response_yelp <= 5:
-                    t1 = time.time()
-                    ds = run_test('datasets/yelp_dataset/yelp_review_uc_training_' + str(dataset_choice) + '.csv',  #training set source
+                    ds, log_entry = run_test('datasets/yelp_dataset/yelp_review_uc_training_' + str(dataset_choice) + '.csv',  #training set source
                                 'datasets/yelp_dataset/yelp_review_uc_testing_' + str(dataset_choice) + '.csv',       #test set source
                                 'yelp_set' + str(dataset_choice),                               #dataset name
                                 'yelp',                                                       #type of data
@@ -176,10 +221,14 @@ def test_driver():
                                 sim_choice,
                                 latent_factors,
                                 iterations)
-                    print('Run time: ' + str(time.time() - t1) + ' sec')
+                    data_source = 'yelp'
+                    record_in_log_file(data_source, algo_choice, sim_choice, log_entry)
+                    
     
 def main():
-    test_driver()
+    #test_driver()
+    automated_wnmf_test()
+    #create_log_file('ml_u1', 'ml', 'wnmf', 'wnmf', 'test')
 
 if __name__ == '__main__':
     main()
