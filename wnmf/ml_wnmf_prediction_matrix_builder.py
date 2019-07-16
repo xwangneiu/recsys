@@ -32,7 +32,7 @@ def build(um_df, output_filename, latent_factors, iterations):
     curr_norm = 0
     change = 999999
     print('starting wnmf loop')
-    while(iteration < iterations and change > 0.001):
+    while(iteration < iterations and change > 0.0001):
         print('iteration ' + str(iteration))
         #update u
         vt = v.T #1650 x 25
@@ -49,19 +49,21 @@ def build(um_df, output_filename, latent_factors, iterations):
         for i in range(len(v)):
             for j in range(len(v[i])):
                 v[i][j] = v[i][j] * (v_num[i][j] / (v_denom[i][j] + 0.0000001))
+        '''        
         print('U:')
         print(u)
         print('V:')
         print(v)
+        '''
         prev_norm = curr_norm
         curr_norm = np.linalg.norm((np.multiply(w, (a - np.matmul(u, v)))), ord='fro')
         change = abs(curr_norm - prev_norm)
-        print('Previous Norm: ' + str(prev_norm) + ' Current Norm: ' + str(curr_norm) + ' Change: ' + str(change))
+        #print('Previous Norm: ' + str(prev_norm) + ' Current Norm: ' + str(curr_norm) + ' Change: ' + str(change))
         iteration += 1
     
-    print('Final WNMF-produced prediction matrix:')
+    #print('Final WNMF-produced prediction matrix:')
     uv = np.matmul(u, v)
-    print(uv)
+    #print(uv)
     u_df = pd.DataFrame(u)
     v_df = pd.DataFrame(v)
     u_df.to_csv(output_filename + '_u.csv')
