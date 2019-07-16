@@ -90,8 +90,7 @@ def record_in_log_file(data, algo, sim, log_entry, log_name=''):
         f.close()    
     print (filename)
 
-def automated_wnmf_test():
-    print('nothing here yet')
+def automated_wnmf_test_ml():
     datasets = [1, 2, 3, 4, 5]
     latent_factors = [1, 2, 3, 4, 5, 7, 10, 12, 15, 20, 25, 30, 40, 50]
     for d in datasets:
@@ -107,6 +106,25 @@ def automated_wnmf_test():
                                     i)  #iterations
                 data_source = 'ml'
                 record_in_log_file(data_source, 'wnmf', 'wnmf', log_entry)
+
+def automated_wnmf_test_yelp():
+    datasets = [1, 2, 3, 4, 5]
+    latent_factors = [1, 2, 3, 4, 5, 7, 10, 12, 15, 20, 25, 30, 40, 50]
+    dataset_choice = 'yelp'
+    algo_choice = 'wnmf'
+    sim_choice = 'wnmf'
+    for d in datasets:
+        for f in latent_factors:
+            for i in range(1, 31):
+                ds, log_entry = run_test('datasets/yelp_dataset/yelp_review_uc_training_' + str(d) + '.csv',  #training set source
+                                'datasets/yelp_dataset/yelp_review_uc_testing_' + str(d) + '.csv',       #test set source
+                                'yelp_set' + str(d),                               #dataset name
+                                'yelp',                                                       #type of data
+                                algo_choice,                                                #algorithm
+                                sim_choice,
+                                f,
+                                i)
+                record_in_log_file('yelp', algo_choice, sim_choice, log_entry)
                 
 
 
@@ -226,7 +244,7 @@ def test_driver():
     
 def main():
     #test_driver()
-    automated_wnmf_test()
+    automated_wnmf_test_yelp()
     #create_log_file('ml_u1', 'ml', 'wnmf', 'wnmf', 'test')
 
 if __name__ == '__main__':
