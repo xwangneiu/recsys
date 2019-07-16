@@ -115,7 +115,7 @@ def automated_wnmf_test_yelp():
     sim_choice = 'wnmf'
     for d in datasets:
         for f in latent_factors:
-            for i in range(1, 31):
+            for i in range(30, 31):
                 ds, log_entry = run_test('datasets/yelp_dataset/yelp_review_uc_training_' + str(d) + '.csv',  #training set source
                                 'datasets/yelp_dataset/yelp_review_uc_testing_' + str(d) + '.csv',       #test set source
                                 'yelp_set' + str(d),                               #dataset name
