@@ -43,7 +43,8 @@ def build(um_dict, output_filename, latent_factors, wnmf_iterations, user_id_dic
       u[user_id_dict[i],:] = 0
     for i in missing_b:
       v[:,business_id_dict[i]] = 0
-    #print(u)
+    np.set_printoptions(threshold=np.inf)
+    print(u)
 
     #get nonzero rows, columns
     x, y = a.nonzero()
