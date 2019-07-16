@@ -18,6 +18,11 @@ def read_dict(um_dict):
         um_dict = json.load(f)
     return um_dict
 
+def find_missing(set_u, set_b, dict_with_missing):
+    missing_u = set_u.difference(set(dict_with_missing.keys()))
+    missing_b = set_b.difference(set([i for x in dict_with_missing.values() for i in x.keys()]))
+    return missing_u, missing_b
+
 def build(um_dict, output_filename, latent_factors, wnmf_iterations, user_id_dict, business_id_dict):
     print('id dicts loading')
     with open(user_id_dict, 'r') as f:
@@ -30,9 +35,14 @@ def build(um_dict, output_filename, latent_factors, wnmf_iterations, user_id_dic
         for key_j, value_j in value_i.items():
             um_dok[user_id_dict[key_i], business_id_dict[key_j]] = value_j
     a = um_dok.tocsr()
+    missing_u, missing_b = find_missing(set(user_id_dict.keys()), set(business_id_dict.keys()), um_dict)
     del um_dict
     u = np.random.random(size = (len(user_id_dict), latent_factors))
     v = np.random.random(size = (latent_factors, len(business_id_dict)))
+    for i in missing_u:
+      u[user_id_dict[i],:] = 0
+    for i in missing_b:
+      v[:,business_id_dict[i]] = 0
     #print(u)
 
     #get nonzero rows, columns
@@ -135,13 +145,13 @@ a = um_dok.tocsr() #25.99948301400036 ms per operation
     #only for testing formulas
 
 def main():
-    operation_time()
-    '''
+    # operation_time()
+    
     t1 = time.time()
     um = read_dict('../datasets/yelp_dataset/utility-matrix/yelp_set1_user_um.json')
     build(um, 'wmnf_matrix', 10, 50,'../datasets/yelp_dataset/utility-matrix/yelp_uc_user_id.json', '../datasets/yelp_dataset/utility-matrix/yelp_uc_item_id.json')
     print(time.time() - t1)
-    '''
+    
 
 if __name__ == '__main__':
     main()
