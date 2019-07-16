@@ -25,8 +25,8 @@ def predict(u_df, v_df, test_set, output_file_path, user_id_dict, business_id_di
     
     u = u_df.to_numpy()
     v = v_df.to_numpy()
-    print(u)
-    print(v)
+    #print(u)
+    #print(v)
     #rebuild prediction matrix by multiplying factor matrices
     pm = np.matmul(u, v)
     
@@ -42,7 +42,7 @@ def predict(u_df, v_df, test_set, output_file_path, user_id_dict, business_id_di
         except KeyError:
             prediction = math.nan
 
-        print("User: " + str(user) + " Business: " + str(business) + " Prediction: " + str(prediction))
+        #print("User: " + str(user) + " Business: " + str(business) + " Prediction: " + str(prediction))
         test_set.at[num, 'prediction'] = prediction
         
     print(test_set)

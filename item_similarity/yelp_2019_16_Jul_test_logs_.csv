@@ -1,0 +1,2 @@
+Timestamp,Data Set,Data Source,Algorithm,Similarity Measure,Latent Factors,Iterations,Runtime,MAE,RMSE,
+1563285928.3199308,yelp_set5,yelp,item,cosine,1,1,1.053532361984253,1.0804431695069177,1.443420952417577,

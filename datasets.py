@@ -37,6 +37,9 @@ class Dataset:
     u_df = None
     v_df = None
     
+    #Log data from WNMF predictor to output actual number of iterations and final change in norm
+    predictor_log = None
+    
     #CONSTRUCTOR
     #og - original data; um - utility matrix; sm - similarity matrix
     #Keyword Arguments: data=ml,yelp; algo=item,user,wnmf; sim=pearson,cosine,wnmf
@@ -144,8 +147,9 @@ class Dataset:
         v_df = None
         print('Building MovieLens WMNF prediction matrix for the \'' + self.name + '\' dataset')
         from wnmf import ml_wnmf_prediction_matrix_builder as pmb
-        u_df, v_df = pmb.build(self.um_df, prediction_matrix_file, latent_factors, iterations)
+        u_df, v_df, log = pmb.build(self.um_df, prediction_matrix_file, latent_factors, iterations)
         print('WNMF prediction matrix ready')
+        self.predictor_log = log
         return u_df, v_df
     
     #YELP
@@ -210,7 +214,8 @@ class Dataset:
         v_df = None
         print('Building MovieLens WMNF prediction matrix for the \'' + self.name + '\' dataset')
         from wnmf import yelp_prediction_matrix_builder as pmb
-        u_df, v_df = pmb.build(self.um_df, prediction_matrix_file, latent_factors, iterations, 'datasets/yelp_dataset/utility-matrix/yelp_uc_user_id.json', 'datasets/yelp_dataset/utility-matrix/yelp_uc_item_id.json')
+        u_df, v_df, log = pmb.build(self.um_df, prediction_matrix_file, latent_factors, iterations, 'datasets/yelp_dataset/utility-matrix/yelp_uc_user_id.json', 'datasets/yelp_dataset/utility-matrix/yelp_uc_item_id.json')
+        self.predictor_log = log
         print('WNMF prediction matrix ready')
         return u_df, v_df
 
@@ -327,15 +332,10 @@ class TrainingAndTest:
         return predictions_df
     
     def build_ml_wnmf_predictions_df(self, predictions_file):
-        predictions_df = None
-        try:
-            predictions_df = pd.read_csv(predictions_file, index_col = 0)
-            print('Prediction results from test set loaded from file (test.predictions_df)')
-        except FileNotFoundError:
-            print('Running WNMF predictor on given training set')
-            from wnmf import ml_wnmf_predictor as mwp
-            predictions_df = mwp.predict(self, predictions_file)
-            print('Predictions saved at ' + predictions_file)
+        print('Running WNMF predictor on given training set')
+        from wnmf import ml_wnmf_predictor as mwp
+        predictions_df = mwp.predict(self, predictions_file)
+        print('Predictions saved at ' + predictions_file)
         self.test.predictions_df = predictions_df
         print('Prediction results ready (test.predictions_df)')
         print(predictions_df)

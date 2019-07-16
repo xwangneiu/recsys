@@ -51,7 +51,7 @@ def predict(dataset, dest_filename):
     results = test_og_df
     
     for i in range(len(users_and_items)):
-        print('Predicting user/item pair ' + str(i + 1))
+        #print('Predicting user/item pair ' + str(i + 1))
         
         user = users_and_items[i][0]
         item = users_and_items[i][1]
@@ -65,7 +65,7 @@ def predict(dataset, dest_filename):
                 prediction = 5
             elif prediction < 1:
                 prediction = 1
-        print("User: " + str(user) + " Item: " + str(item) + " Prediction: " + str(prediction))
+        #print("User: " + str(user) + " Item: " + str(item) + " Prediction: " + str(prediction))
         predictions[i] = prediction
     
     predictions = pd.Series(predictions)

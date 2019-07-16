@@ -95,7 +95,8 @@ def build(um_dict, output_filename, latent_factors, wnmf_iterations, user_id_dic
     v = pd.DataFrame(v)
     u.to_csv((output_filename + 'u.csv'))
     v.to_csv((output_filename + 'v.csv'))
-    return(u, v)
+    log_data = str(i) + ',' + str(change)
+    return u, v, log_data
        
 
 # um, output file, latent factors, iterations
