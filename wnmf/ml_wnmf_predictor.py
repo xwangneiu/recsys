@@ -15,10 +15,13 @@ import datasets
 
 def get_index_dicts(training_um_df):
     user_indices = training_um_df.index.to_numpy()
-    user_indices = [int(x) for x in user_indices]
-    print(user_indices)
     item_indices = training_um_df.columns.to_numpy()
-    item_indices = [int(x) for x in item_indices]
+    try:
+        user_indices = [int(x) for x in user_indices]
+        item_indices = [int(x) for x in item_indices]
+    except ValueError:
+        print('Note: Non-integer indices')
+    print(user_indices)
     print(item_indices)
     #need to make dictionary such that keys are actual IDs, and values are positional.
     uid_to_index = {} #actual user id -> zero-based index in 2d array

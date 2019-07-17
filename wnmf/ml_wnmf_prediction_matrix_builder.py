@@ -11,8 +11,10 @@ import time
 
 
 def build(um_df, output_filename, latent_factors, iterations):
+
     um = um_df.to_numpy()
     
+
     #original utility matrix 
     a = np.nan_to_num(um)
     
@@ -21,8 +23,10 @@ def build(um_df, output_filename, latent_factors, iterations):
     for i in range(len(a)):
         for j in range(len(a[i])):
             if a[i][j] != 0:
-                w[i][j] = 1        
-
+                w[i][j] = 1
+    
+              
+    
     #factor matrix initialization
     u = np.random.rand(len(a), latent_factors)
     v = np.random.rand(latent_factors, len(a[0]))
@@ -49,21 +53,17 @@ def build(um_df, output_filename, latent_factors, iterations):
         for i in range(len(v)):
             for j in range(len(v[i])):
                 v[i][j] = v[i][j] * (v_num[i][j] / (v_denom[i][j] + 0.0000001))
-        '''        
-        print('U:')
-        print(u)
-        print('V:')
-        print(v)
-        '''
+               
+                
         prev_norm = curr_norm
         curr_norm = np.linalg.norm((np.multiply(w, (a - np.matmul(u, v)))), ord='fro')
         change = abs(curr_norm - prev_norm)
         #print('Previous Norm: ' + str(prev_norm) + ' Current Norm: ' + str(curr_norm) + ' Change: ' + str(change))
         iteration += 1
     
-    #print('Final WNMF-produced prediction matrix:')
+    print('Final WNMF-produced prediction matrix:')
     uv = np.matmul(u, v)
-    #print(uv)
+    print(uv)
     u_df = pd.DataFrame(u)
     v_df = pd.DataFrame(v)
     u_df.to_csv(output_filename + '_u.csv')
@@ -71,10 +71,11 @@ def build(um_df, output_filename, latent_factors, iterations):
     #actual number of iterations and final change between norm of each iteration
     log_data = str(iteration) + ',' + str(change)
     return u_df, v_df, log_data
-
+    
 def main():
-    um_df = pd.read_csv('../datasets/ml-100k/utility-matrix/ml_u1_item_um.csv', index_col = 0)
-    u_df, v_df = build(um_df, 'wnmf_test_', 3, 25)
-
+    um_df = pd.read_csv('../datasets/yelp_dataset/yelp_review_uc_training_um_1.csv', index_col = 0)
+    build(um_df, 'wnmf_test_', 3, 25)
+    #print(log)
+    
 if __name__ == '__main__':
     main()

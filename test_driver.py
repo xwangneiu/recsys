@@ -18,27 +18,51 @@ def run_test(data_source, test_source, name, data, algo, sim, latent_factors, it
     if data == 'ml':
         data_utility_dir = 'datasets/ml-100k/utility-matrix/'
         filetype = 'csv'
+        ds = datasets.TrainingAndTest(data + ' training/test sets')
+        ds.training = datasets.Dataset(
+            name,                                             #name
+            data_source,                                      #original source
+            data_utility_dir + str(name) + '_' + str(algo) + '_um.' + filetype,    #utility matrix
+            results_folder + str(name) + '_' + str(algo) + '_' + str(sim) + '_sm.' + filetype,            #similarity matrix (or u and v matrices filename after u_ and v_ respectively)
+            data,                                             #data source
+            algo,                                             #algorithm
+            sim,
+            latent_factors,
+            iterations)
+        ds.test = datasets.TestSet(
+            str(name) + ' test set',                                          #name
+            test_source, data)
     elif data == 'yelp':
-        data_utility_dir = 'datasets/yelp_dataset/utility-matrix/'
-        filetype = 'json'
+        data_utility_dir = None
+        filetype = None
+        um_location = None
+        if algo == 'wnmf':
+            data_utility_dir = 'datasets/yelp_dataset/'
+            filetype = 'csv'
+            um_location = data_source
+        else:
+            data_utility_dir = 'datasets/yelp_dataset/utility-matrix/'
+            filetype = 'json'
+            um_location = data_utility_dir + 'yelp_review_uc_training_um' + str(algo) + '_um.' + filetype
+        ds = datasets.TrainingAndTest(data + ' training/test sets')
+        ds.training = datasets.Dataset(
+            name,                                             #name
+            data_source,                                      #original source
+            um_location,    #utility matrix
+            results_folder + str(name) + '_' + str(algo) + '_' + str(sim) + '_sm.' + filetype,            #similarity matrix (or u and v matrices filename after u_ and v_ respectively)
+            data,                                             #data source
+            algo,                                             #algorithm
+            sim,
+            latent_factors,
+            iterations)
+        ds.test = datasets.TestSet(
+            str(name) + ' test set',                                          #name
+            test_source, data)
+            
     if algo == 'user' or algo == 'item':
         results_folder += '_similarity/'
     elif algo == 'wnmf':
         results_folder += '/'
-    ds = datasets.TrainingAndTest(data + ' training/test sets')
-    ds.training = datasets.Dataset(
-        name,                                             #name
-        data_source,                                      #original source
-        data_utility_dir + str(name) + '_' + str(algo) + '_um.' + filetype,    #utility matrix
-        results_folder + str(name) + '_' + str(algo) + '_' + str(sim) + '_sm.' + filetype,            #similarity matrix (or u and v matrices filename after u_ and v_ respectively)
-        data,                                             #data source
-        algo,                                             #algorithm
-        sim,
-        latent_factors,
-        iterations)
-    ds.test = datasets.TestSet(
-        str(name) + ' test set',                                          #name
-        test_source, data)
     if data == 'ml':
         if algo == 'item':
             ds.build_ml_item_predictions_df('item_similarity/' + str(name) + '_' + str(algo)  + '_' + str(sim) + '_predictions.csv')
@@ -115,8 +139,8 @@ def automated_wnmf_test_yelp():
     sim_choice = 'wnmf'
     for d in datasets:
         for f in latent_factors:
-            for i in range(30, 31):
-                ds, log_entry = run_test('datasets/yelp_dataset/yelp_review_uc_training_' + str(d) + '.csv',  #training set source
+            for i in range(1, 31):
+                ds, log_entry = run_test('datasets/yelp_dataset/yelp_review_uc_training_um_' + str(d) + '.csv',  #training set source
                                 'datasets/yelp_dataset/yelp_review_uc_testing_' + str(d) + '.csv',       #test set source
                                 'yelp_set' + str(d),                               #dataset name
                                 'yelp',                                                       #type of data
@@ -230,14 +254,24 @@ def test_driver():
                         latent_factors = int(input('Latent factors: '))
                         iterations = int(input('Iterations: '))
                 if response_yelp <= 5:
-                    ds, log_entry = run_test('datasets/yelp_dataset/yelp_review_uc_training_' + str(dataset_choice) + '.csv',  #training set source
-                                'datasets/yelp_dataset/yelp_review_uc_testing_' + str(dataset_choice) + '.csv',       #test set source
-                                'yelp_set' + str(dataset_choice),                               #dataset name
-                                'yelp',                                                       #type of data
-                                algo_choice,                                                #algorithm
-                                sim_choice,
-                                latent_factors,
-                                iterations)
+                    if response_yelp <= 4:
+                        ds, log_entry = run_test('datasets/yelp_dataset/yelp_review_uc_training_' + str(dataset_choice) + '.csv',  #training set source
+                                    'datasets/yelp_dataset/yelp_review_uc_testing_' + str(dataset_choice) + '.csv',       #test set source
+                                    'yelp_set' + str(dataset_choice),                               #dataset name
+                                    'yelp',                                                       #type of data
+                                    algo_choice,                                                #algorithm
+                                    sim_choice,
+                                    latent_factors,
+                                    iterations)
+                    elif response_yelp == 5:
+                        ds, log_entry = run_test('datasets/yelp_dataset/yelp_review_uc_training_um_' + str(dataset_choice) + '.csv',  #training set source
+                                    'datasets/yelp_dataset/yelp_review_uc_testing_' + str(dataset_choice) + '.csv',       #test set source
+                                    'yelp_set' + str(dataset_choice),                               #dataset name
+                                    'yelp',                                                       #type of data
+                                    algo_choice,                                                #algorithm
+                                    sim_choice,
+                                    latent_factors,
+                                    iterations)
                     data_source = 'yelp'
                     record_in_log_file(data_source, algo_choice, sim_choice, log_entry)
                     
