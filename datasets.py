@@ -69,13 +69,13 @@ class Dataset:
             elif algo == 'user':
                 self.um_df = self.build_yelp_user_um(um_file) #function returns um df
             elif algo == 'wnmf':
-                self.um_df = self.build_yelp_user_um(um_file)
+                self.um_df = self.build_yelp_wnmf_um(um_file)
             if sim == 'pearson':
                 self.sm_df = self.build_yelp_pearson_sm(sm_file) #function returns sim df
             elif sim == 'cosine':
                 self.sm_df = self.build_yelp_cosine_sm(sm_file)
             elif sim == 'wnmf':
-                self.u_df, self.v_df = self.build_yelp_wnmf_prediction_matrix(sm_file, latent_factors, iterations)
+                self.u_df, self.v_df, self.predictor_log = self.build_yelp_wnmf_prediction_matrix(sm_file, latent_factors, iterations)
         
         
     #METHODS
@@ -186,6 +186,20 @@ class Dataset:
             um_df = yumu.build(self.og_df, um_file)
         print('Yelp user-based utility matrix ready')
         return um_df #this is a dictionary
+    
+    def build_yelp_wnmf_um(self, um_file):
+        print("trying to load WNMF UM from location: " + um_file)
+        um_df = None
+        try:
+            um_df = pd.read_csv(um_file, index_col = 0)
+            print(um_df)
+            print('Yelp WNMF utility matrix ready')
+            return um_df #this is a dictionary
+        except FileNotFoundError:
+            print('''This Yelp WNMF UM function is not equipped to build a UM, just to load it. 
+            Please build your UMs manually and point the test driver to them instead.
+            Until then, you will be unable to proceed with Yelp WNMF.''')
+        
 
     def build_yelp_pearson_sm(self, sm_file):
         sm_df = None
@@ -213,11 +227,15 @@ class Dataset:
         u_df = None
         v_df = None
         print('Building MovieLens WMNF prediction matrix for the \'' + self.name + '\' dataset')
+        '''
         from wnmf import yelp_prediction_matrix_builder as pmb
         u_df, v_df, log = pmb.build(self.um_df, prediction_matrix_file, latent_factors, iterations, 'datasets/yelp_dataset/utility-matrix/yelp_uc_user_id.json', 'datasets/yelp_dataset/utility-matrix/yelp_uc_item_id.json')
-        self.predictor_log = log
+        '''
+        from wnmf import ml_wnmf_prediction_matrix_builder as pmb
+        u_df, v_df, log = pmb.build(self.um_df, prediction_matrix_file, latent_factors, iterations)
+        
         print('WNMF prediction matrix ready')
-        return u_df, v_df
+        return u_df, v_df, log
 
 #Class for training/test set pairs
 #TestSet subclass inherits from Dataset superclass
@@ -291,6 +309,7 @@ class TestSet(Dataset):
             self.user_item_pairs_df = self.build_user_item_pairs_df(og_file)
         elif data == "yelp":
             self.og_df = self.build_yelp_og_df(og_file)
+            self.user_item_pairs_df = self.og_df
         if prediction_file is not None:
             self.predictions_df = self.build_predictions_df(csv=prediction_file)
 
@@ -375,10 +394,14 @@ class TrainingAndTest:
     
     def build_yelp_wnmf_predictions_df(self, predictions_file):
         predictions_df = None
-        print('Running Yelp predictor on given training set')
+        print('Running ML predictor on Yelp training set')
+        '''
         from wnmf import yelp_wnmf_predictor as ywp
         #note that the below um_df and sm_df are really dictionaries
         predictions_df = ywp.predict(self.training.u_df, self.training.v_df, self.test.og_df, predictions_file, 'datasets/yelp_dataset/utility-matrix/yelp_uc_user_id.json', 'datasets/yelp_dataset/utility-matrix/yelp_uc_item_id.json')
+        '''
+        from wnmf import ml_wnmf_predictor as mwp
+        predictions_df = mwp.predict(self, predictions_file)
         print('Predictions saved at ' + predictions_file)
         self.test.predictions_df = predictions_df
         print('Prediction results ready (test.predictions_df)')
@@ -388,7 +411,7 @@ class TrainingAndTest:
     #CONSTRUCTOR
     def __init__(self, name):
         self.name = name
-        print("If you are not seeing the results you want, you may need to initialize the .training and .test objects using their own constructors")
+        print("FYI: If all you are seeing is this message, you may need to initialize the .training and .test instance variable objects using their own constructors. Otherwise, disregard this.")
 
 #DATASET LOADING FUNCTIONS
 def load_ml_100k():
