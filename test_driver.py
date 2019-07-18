@@ -118,37 +118,37 @@ def automated_wnmf_test_ml():
     datasets = [1, 2, 3, 4, 5]
     latent_factors = [1, 2, 3, 4, 5, 7, 10, 12, 15, 20, 25, 30, 40, 50]
     for d in datasets:
-        for f in latent_factors:
-            for i in range(1, 31):
-                ds, log_entry = run_test('datasets/ml-100k/u' + str(d) + '.base',  #training set source
-                                    'datasets/ml-100k/u' + str(d) + '.test',       #test set source
-                                    'ml_u' + str(d),                               #dataset name
-                                    'ml',                                                       #type of data
-                                    'wnmf', #algo                                                #algorithm
-                                    'wnmf', #sim                                                #similarity measure
-                                    f,  #latent factors
-                                    i)  #iterations
-                data_source = 'ml'
-                record_in_log_file(data_source, 'wnmf', 'wnmf', log_entry)
+        for f in range(1, 101):
+            i = 500
+            ds, log_entry = run_test('datasets/ml-100k/u' + str(d) + '.base',  #training set source
+                                'datasets/ml-100k/u' + str(d) + '.test',       #test set source
+                                'ml_u' + str(d),                               #dataset name
+                                'ml',                                                       #type of data
+                                'wnmf', #algo                                                #algorithm
+                                'wnmf', #sim                                                #similarity measure
+                                f,  #latent factors
+                                i)  #iterations
+            data_source = 'ml'
+            record_in_log_file(data_source, 'wnmf', 'wnmf', log_entry, log_name='converge')
 
 def automated_wnmf_test_yelp():
     datasets = [1, 2, 3, 4, 5]
-    latent_factors = [1, 2, 3, 4, 5, 7, 10, 12, 15, 20, 25, 30, 40, 50]
+    #latent_factors = [1, 2, 3, 4, 5, 7, 10, 12, 15, 20, 25, 30, 40, 50]
     dataset_choice = 'yelp'
     algo_choice = 'wnmf'
     sim_choice = 'wnmf'
     for d in datasets:
-        for f in latent_factors:
-            for i in range(1, 31):
-                ds, log_entry = run_test('datasets/yelp_dataset/yelp_review_uc_training_um_' + str(d) + '.csv',  #training set source
-                                'datasets/yelp_dataset/yelp_review_uc_testing_' + str(d) + '.csv',       #test set source
-                                'yelp_set' + str(d),                               #dataset name
-                                'yelp',                                                       #type of data
-                                algo_choice,                                                #algorithm
-                                sim_choice,
-                                f,
-                                i)
-                record_in_log_file('yelp', algo_choice, sim_choice, log_entry)
+        for f in range(1, 101): #latent factors
+            i = 500
+            ds, log_entry = run_test('datasets/yelp_dataset/yelp_review_uc_training_um_' + str(d) + '.csv',  #training set source
+                            'datasets/yelp_dataset/yelp_review_uc_testing_' + str(d) + '.csv',       #test set source
+                            'yelp_set' + str(d),                               #dataset name
+                            'yelp',                                                       #type of data
+                            algo_choice,                                                #algorithm
+                            sim_choice,
+                            f,
+                            i)
+            record_in_log_file(dataset_choice, algo_choice, sim_choice, log_entry, log_name='converge2')
                 
 
 
@@ -278,7 +278,7 @@ def test_driver():
     
 def main():
     #test_driver()
-    automated_wnmf_test_yelp()
+    automated_wnmf_test_ml()
     #create_log_file('ml_u1', 'ml', 'wnmf', 'wnmf', 'test')
 
 if __name__ == '__main__':
