@@ -61,9 +61,12 @@ def run_gui_app():
     frames = []
     dropdown_values = []
     dropdowns = []
-    rating_values = []
-    def set_radio(i, j):
-        user_ratings[i][2] = j + 1
+    rating_values = [tk.IntVar(), tk.IntVar(), tk.IntVar(), tk.IntVar(), tk.IntVar()]
+    '''
+    def set_radio(i):
+        user_ratings[i][2] = rating_values[i].get()
+    '''
+        
     radios = []
     curr_movie_id = 0
     x_loc = 200
@@ -73,26 +76,27 @@ def run_gui_app():
         frames[i].pack()
         #combo box
         dropdown_values.append(tk.StringVar())
-        print(dropdown_values)
         dropdowns.append(tkentrycomplete.AutocompleteCombobox(textvariable=dropdown_values[i], width=40))
         dropdowns[i].set_completion_list(titles)
         dropdowns[i].pack(in_=frames[i], side='left')
         
-        #ratings
-        rating_values.append(tk.IntVar())
-        rating_values[i].set(3)
+        #radios
         for j in range(len(star_ratings)):
-            x_loc += 20
             radios.append(tk.Radiobutton(root, 
                        text=star_ratings[j],
                        padx=20,
                        variable=rating_values[i],
-                       command=lambda: set_radio(i, j),
+                       #command=lambda: set_radio(i),
                        value=star_ratings[j]).pack(in_=frames[i], side='left'))
-        x_loc -= 100
-        y_loc += 50
         
-        #record_and_recommend = tk.Button(root, text="Recommend Movies", width=30, height=5, bg="brown", command=do_it)
+    def record_recommend():
+        for i in range(len(rating_values)):
+            user_ratings[i][1] = movie_dict[dropdown_values[i].get()]
+            user_ratings[i][2] = rating_values[i].get()
+        print(user_ratings)
+            
+    
+    record_and_recommend = tk.Button(root, text="Recommend Movies", width=30, height=5, bg="brown", command=record_recommend).pack()
         
     '''
     def get_dropdown_0():
