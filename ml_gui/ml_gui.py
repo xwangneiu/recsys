@@ -10,23 +10,33 @@ sys.path.insert(0, '../')
 import tkinter as tk
 from libraries import tkentrycomplete
 import movie_titles
-
+import pandas as pd
+import numpy as np
+from shutil import copyfile
+import os
 
 def load_film_data():
     print('nothing here yet')
+    
     #pre-produce json containing film names: ids as dictionary
     #load said file
     #convert film names to a list
     #return list of film names
     
 #new_user_ratings should be pandas dataframe with user id, item id, observed value, and UNIX epoch seconds only timestamp
-def get_rec(new_user_ratings):
-    print('nothing here yet')
+def get_rec(user_ratings):
+    file_with_user_ratings = '../datasets/ml-100k/gui_og.csv'
+    copyfile('../datasets/ml-100k/u1.base', file_with_user_ratings)
+    f = open(file_with_user_ratings, 'a')
+    ratings_to_write = str(user_ratings).replace('],', '\n').replace('[', '').replace()
+    
+    print(ratings_to_write)
     #append user ratings to u.base
     #load as new dataset with new user ratings
     #get user prediction for ALL films (predict on pairs that consist of the active user and all items)
     #sort by predicted rating (there will be many 5s), and then by popularity or maybe do not cap ratings at 5 anymore in predictor
     #return top rated 5 as a list
+    
 def run_gui_app():
     
     #get ID->title / title->ID dictionary and movie titles list
@@ -89,43 +99,50 @@ def run_gui_app():
                        #command=lambda: set_radio(i),
                        value=star_ratings[j]).pack(in_=frames[i], side='left'))
         
+    duplicate_entry = tk.Label(root, text="You may only rate the same movie once")
+    missing_movie = tk.Label(root, text="You forgot to select 5 movies to rate")
+    missing_rating = tk.Label(root, text="Please rate all 5 movies")
+    
     def record_recommend():
+        movies_rated = {}
+        duplicate_entry.pack_forget()
+        missing_movie.pack_forget()
+        missing_rating.pack_forget()
+        validated = False
         for i in range(len(rating_values)):
-            user_ratings[i][1] = movie_dict[dropdown_values[i].get()]
-            user_ratings[i][2] = rating_values[i].get()
-        print(user_ratings)
+            try:
+                movie_id = movie_dict[dropdown_values[i].get()]
+                #if there is a duplicate
+                if movie_id in movies_rated:
+                    duplicate_entry.pack()
+                    break
+                else:
+                    user_ratings[i][1] = movie_id
+                    movies_rated[movie_id] = True
+                    user_ratings[i][2] = rating_values[i].get()
+                    #if user forgot to rate one of the movies
+                    if user_ratings[i][2] == 0:
+                        missing_rating.pack()
+                        break
+                    if i == len(rating_values) - 1:
+                        validated = True
+            #if user did not select 5 movies
+            except KeyError:
+                missing_movie.pack()
+        print(validated)
+        if validated:
+            #make function that adds a row to the csv from an element in rating_values
+            get_rec(user_ratings)
+            
+                
+            
             
     
     record_and_recommend = tk.Button(root, text="Recommend Movies", width=30, height=5, bg="brown", command=record_recommend).pack()
-        
-    '''
-    def get_dropdown_0():
-        user_ratings[0][1] = movie_dict[dropdown_0_value.get()]
-    dropdown_0 = tkentrycomplete.AutocompleteCombobox(textvariable=dropdown_0_value)
-    dropdown_0.set_completion_list(titles)
-    dropdown_0.place(x=200, y=400)
-    rating_0 = tk.IntVar()
-    rating_0.set(3)
-    def get_rating_0():
-        user_ratings[0][2] = rating_0.get()
-    for i in range(len(star_ratings)):
-        tk.Radiobutton(root, 
-                       text=star_ratings[i],
-                       padx=20,
-                       variable=rating_0,
-                       command=get_rating_0,
-                       value=star_ratings[i]).pack(anchor=tk.W)
-    def record_ratings():
-        user_ratings[0][1] = movie_dict[dropdown_0_value.get()]
-        
-        print(user_ratings)
-    record_button = tk.Button(text='Record Ratings', command=record_ratings)
-    record_button.place(x=200, y=450)
-    #5 dropdown menus with films to rate (autocomplete), then 
-    #Autocomplete: https://stackoverflow.com/questions/55649709/is-autocomplete-search-feature-available-in-tkinter-combo-box
-    #Radio buttons: https://www.python-course.eu/tkinter_radiobuttons.php
-    #Keep adding ratings until 
-    '''
+    
+    #validate results
+    #if validated:
+    
     root.mainloop()
     
 def main():
