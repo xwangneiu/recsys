@@ -350,10 +350,10 @@ class TrainingAndTest:
         print(predictions_df)
         return predictions_df
     
-    def build_ml_wnmf_predictions_df(self, predictions_file):
+    def build_ml_wnmf_predictions_df(self, predictions_file, cap=True):
         print('Running WNMF predictor on given training set')
         from wnmf import ml_wnmf_predictor as mwp
-        predictions_df = mwp.predict(self, predictions_file)
+        predictions_df = mwp.predict(self, predictions_file, cap_at_5=cap)
         print('Predictions saved at ' + predictions_file)
         self.test.predictions_df = predictions_df
         print('Prediction results ready (test.predictions_df)')
