@@ -116,14 +116,24 @@ def run_gui_app():
     root = tk.Tk()
     root.title('FILM RECOMMENDER')
     root.geometry("640x640+0+0")
-    background_image = tk.PhotoImage('/grad_bg.jpg')
-    background_label = tk.Label(root, image=background_image)
-    background_label.place(x=0, y=0, relwidth=1, relheight=1)
-    background_label.photo=background_image
-    heading = tk.Label(root, text="FILM RECOMMENDER", font=("fixedsys", 30, "bold"), fg="steelblue").pack()
-    headers_frame = tk.Frame(root, height=100, width=640).pack()
-    movies_title = tk.Label(text="-- Pick movies (start typing to see what's available) ", font=("arial", 16, "bold"), fg="black", justify='left').pack()
-    ratings_title = tk.Label(text="-- Rate them 1-5 stars", font=("arial", 16, "bold"), fg="black", wraplength=320, justify='left').pack()
+    #color and font scheme
+    background = 'firebrick3'
+    main_font = 'calibri'
+    main_font_size = 12
+    main_font_weight = 'bold'
+    main_font_color = 'black'
+    button_color = background
+    
+    root['bg'] = background
+    heading = tk.Label(root, text="MOVIE RECOMMENDER", font=("bauhaus 93", 30), fg="white", bg=background).pack()
+    headers = tk.Frame(root, height=200, width=640, bg=background)
+    headers_subframe_1 = tk.Frame(root, height=200, width=32, bg=background)
+    headers_subframe_2 = tk.Frame(root, height=200, width=32, bg=background)
+    movies_title = tk.Label(text="               Select Movies", font=(main_font, 16, "bold"), fg=main_font_color, bg=background).pack(in_=headers_subframe_1, side='left')
+    ratings_title = tk.Label(text="Rate Movies                 ", font=(main_font, 16, "bold"), fg=main_font_color, bg=background).pack(in_=headers_subframe_2, side='left')
+    headers_subframe_1.pack(in_=headers, side='right')
+    headers_subframe_2.pack(in_=headers, side='left')
+    headers.pack()
     #get user ratings
     file_with_user_ratings = '../datasets/ml-100k/gui_og.csv'
     user_ratings = [
@@ -144,19 +154,22 @@ def run_gui_app():
     x_loc = 200
     y_loc = 200
     for i in range(len(star_ratings)):
-        frames.append(tk.Frame(root, height=50, width=640))
+        frames.append(tk.Frame(root, height=50, width=640, bg=background))
         frames[i].pack()
         #combo box
         dropdown_values.append(tk.StringVar())
-        dropdowns.append(tkentrycomplete.AutocompleteCombobox(textvariable=dropdown_values[i], width=40))
+        dropdowns.append(tkentrycomplete.AutocompleteCombobox(textvariable=dropdown_values[i], font=(main_font, main_font_size, main_font_weight), width=40))
         dropdowns[i].set_completion_list(titles)
         dropdowns[i].pack(in_=frames[i], side='left')
         
         #radios
         for j in range(len(star_ratings)):
             radios.append(tk.Radiobutton(root, 
-                       text=star_ratings[j],
-                       padx=20,
+                       text=str(star_ratings[j]) + ' ★',
+                       font=(main_font, 16, "bold"),
+                       fg=main_font_color, 
+                       bg=background,
+                       padx=0,
                        variable=rating_values[i],
                        #command=lambda: set_radio(i),
                        value=star_ratings[j]).pack(in_=frames[i], side='left'))
@@ -164,13 +177,13 @@ def run_gui_app():
     duplicate_entry = "You may only rate the same movie once"
     missing_movie = "You forgot to select 5 movies to rate"
     missing_rating = "Please rate all 5 movies"
-    invalid_user_input = tk.Label(text="", height=0)
+    invalid_user_input = tk.Label(text="", height=0, fg=main_font_color, font=(main_font, main_font_size, main_font_weight), bg=background)
     movies_rated = {}
     top_k_recommendations = []
     def rec_list_to_string(top_k_recommendations):
         result = ''
         for i in range(len(top_k_recommendations)):
-            result += str(i + 1) + '. ' + top_k_recommendations[i] + '\n'
+            result += str(i + 1) + '.  ' + top_k_recommendations[i] + '\n'
         return result
     
     def record_recommend():
@@ -211,8 +224,8 @@ def run_gui_app():
 
                 
     invalid_user_input.pack()
-    recommendation_list = tk.Label(text="", height=0)
-    record_and_recommend = tk.Button(root, text="Recommend Movies", width=30, height=3, bg="brown", command=record_recommend).pack()
+    recommendation_list = tk.Label(text="", height=0, bg=background, justify='left', fg=main_font_color, font=(main_font, main_font_size, main_font_weight))
+    record_and_recommend = tk.Button(root, text="Recommend Movies", width=30, height=3, fg=main_font_color, bg=button_color, command=record_recommend, font=(main_font, main_font_size, main_font_weight)).pack()
     recommendation_list.pack()
  
     print(radios)
@@ -232,8 +245,8 @@ def run_gui_app():
     def end_program():
         clean_up()
         root.destroy()
-    new_session_button = tk.Button(root, text="Start New Session", width=30, height=3, bg="brown", command=clean_up).pack()
-    quit_button = tk.Button(root, text="Quit", width=30, height=3, bg="brown", command=end_program).pack()
+    new_session_button = tk.Button(root, text="Start New Session", width=30, height=3, fg=main_font_color, bg=button_color, command=clean_up, font=(main_font, main_font_size, main_font_weight)).pack()
+    quit_button = tk.Button(root, text="Quit", width=30, height=3, fg=main_font_color, bg=button_color, command=end_program, font=(main_font, main_font_size, main_font_weight)).pack()
     
     #validate results
     #if validated:
