@@ -4,41 +4,253 @@ Created on Wed Jul 17 13:57:53 2019
 
 @author: jonathan
 """
+import sys
+sys.path.insert(0, '../datasets/ml-100k/')
+sys.path.insert(0, '../')
+import datasets
 import tkinter as tk
+from libraries import tkentrycomplete
+import movie_titles
+import pandas as pd
+import numpy as np
+import time
+from shutil import copyfile
+import os
+import math
+
 def load_film_data():
+    print('nothing here yet')
+    
     #pre-produce json containing film names: ids as dictionary
     #load said file
     #convert film names to a list
     #return list of film names
     
-#new_user_ratings should be pandas dataframe with user id, item id, observed value, and UNIX epoch seconds only timestamp
-def get_rec(new_user_ratings):
-    print('nothing here yet')
+#new_user_ratings should be pandas dataframe with user id, item id, observed value, and UNIX epoch seconds only timestamp  
+def top_k_recommendation(file_with_user_ratings, test_og_df, k):
+    name = 'ml_gui'
+    data_utility_dir = '../datasets/ml-100k/utility-matrix/'
+    results_folder = '../wnmf/'
+    ds = datasets.TrainingAndTest('ml_gui')
+    ds.training = datasets.Dataset(
+        'ml_gui',                            #name
+        file_with_user_ratings,                                      #original source
+        data_utility_dir + name + '_um.csv',            #utility matrix
+        results_folder + name + '_',            #similarity matrix
+        'ml',                                             #data source
+        'wnmf',                                             #algorithm
+        'wnmf',
+        2, #latent factors
+        26) #iterations
+    #get 
+    ds.test = datasets.TestSet(
+        str(name) + ' test set',                                          #name
+        'gui_user_test.csv', 'ml')
+    ds.build_ml_wnmf_predictions_df(results_folder + str(name) + '_wnmf_predictions.csv', cap=False)
+    predictions = ds.test.predictions_df.copy()
+    recommendations = predictions.sort_values('prediction', ascending=False).head(k)
+    print(recommendations)
+    recommendations = list(recommendations['item'])
+    #print(recommendations)
+    movie_dict, titles = movie_titles.get_movie_info()
+    recommendations = [movie_dict[i] for i in recommendations]
+    #np.savetxt("test_uv.csv", np.matmul(ds.training.u_df.to_numpy(), ds.training.v_df.to_numpy()), delimiter=',')
+    #print(recommendations)
+    #delete source files to ensure not reused
+    #set all dataframes to none
+    os.remove('../wnmf/ml_gui__u.csv')
+    os.remove('../wnmf/ml_gui__v.csv')
+    os.remove('../wnmf/ml_gui_wnmf_predictions.csv')
+    os.remove('../datasets/ml-100k/utility-matrix/ml_gui_um.csv')
+    #returns list of top 5    
+    return recommendations
+    
+def get_rec(user_ratings, file_with_user_ratings, k):
+    #TO DO: any new ratings for the active user that the active user has already rated should be dropped
+    df = None
+    try:
+        df = pd.read_csv(file_with_user_ratings, sep='\t', names=['user', 'movie', 'rating', 'timestamp'])
+    except FileNotFoundError:
+        copyfile('../datasets/ml-100k/u.data', file_with_user_ratings)
+        df = pd.read_csv(file_with_user_ratings, sep='\t', names=['user', 'movie', 'rating', 'timestamp'])
+    #f = open(file_with_user_ratings, 'a')
+    df = pd.read_csv(file_with_user_ratings, sep='\t', names=['user', 'movie', 'rating', 'timestamp'])
+    
+    ratings_to_write = pd.DataFrame(user_ratings, columns=['user', 'movie', 'rating'])
+    ratings_to_write['timestamp'] = float(int(time.time()))
+    df = df.append(ratings_to_write)
+    df.index = [i for i in range(len(df.index))]
+    df.to_csv(file_with_user_ratings, sep='\t', index=False, header=None)
+    
+    #only recommend movies with >50 ratings
+    top_movies = df.copy()
+    by_ratings = top_movies.groupby('movie')['rating'].count()
+    #print(by_ratings)
+    
+    movie_ratings = pd.DataFrame(by_ratings).sort_values('rating', ascending=False)
+    #movie_ratings = movie_ratings.groupby('rating').filter(lambda x: x >= 50)
+    movie_ratings = movie_ratings[movie_ratings['rating'] > 50]
+    movies_to_predict = movie_ratings.index.to_numpy()
+    
+    user_item_pairs = pd.DataFrame([2000 for i in range(len(movies_to_predict))], columns=['user'])
+    user_item_pairs['movie'] = pd.Series(movies_to_predict)
+
+    test_og_df = user_item_pairs.copy()
+    test_og_df['rating'] = math.nan
+    test_og_df['timestamp'] = 999999999
+    test_og_df.to_csv('gui_user_test.csv', sep='\t', index=False, header=None)
+    print(test_og_df)
+    
+    #print(user_item_pairs)
     #append user ratings to u.base
     #load as new dataset with new user ratings
     #get user prediction for ALL films (predict on pairs that consist of the active user and all items)
     #sort by predicted rating (there will be many 5s), and then by popularity or maybe do not cap ratings at 5 anymore in predictor
     #return top rated 5 as a list
+    return top_k_recommendation(file_with_user_ratings, test_og_df, k)
+    #return ["Not a real movie", "Not a real movie", "Not a real movie", "Not a real movie", "Not a real movie"]
 def run_gui_app():
+    
+    #get ID->title / title->ID dictionary and movie titles list
+    movie_dict, titles = movie_titles.get_movie_info()
     root = tk.Tk()
-    root.title("New Application")
+    root.title('FILM RECOMMENDER')
     root.geometry("640x640+0+0")
+    #color and font scheme
+    background = 'firebrick3'
+    main_font = 'calibri'
+    main_font_size = 12
+    main_font_weight = 'bold'
+    main_font_color = 'black'
+    button_color = background
     
-    heading = tk.Label(root, text="Recommender System", font=("arial", 40, "bold"), fg="steelblue").pack()
+    root['bg'] = background
+    heading = tk.Label(root, text="MOVIE RECOMMENDER", font=("bauhaus 93", 30), fg="white", bg=background).pack()
+    headers = tk.Frame(root, height=200, width=640, bg=background)
+    headers_subframe_1 = tk.Frame(root, height=200, width=32, bg=background)
+    headers_subframe_2 = tk.Frame(root, height=200, width=32, bg=background)
+    movies_title = tk.Label(text="               Select Movies", font=(main_font, 16, "bold"), fg=main_font_color, bg=background).pack(in_=headers_subframe_1, side='left')
+    ratings_title = tk.Label(text="Rate Movies                 ", font=(main_font, 16, "bold"), fg=main_font_color, bg=background).pack(in_=headers_subframe_2, side='left')
+    headers_subframe_1.pack(in_=headers, side='right')
+    headers_subframe_2.pack(in_=headers, side='left')
+    headers.pack()
+    #get user ratings
+    file_with_user_ratings = '../datasets/ml-100k/gui_og.csv'
+    user_ratings = [
+            [2000, 2000, 0],
+            [2000, 2000, 0],
+            [2000, 2000, 0],
+            [2000, 2000, 0],
+            [2000, 2000, 0]]
     
-    label1 = tk.Label(root, text="Enter your name: ", font=("arial", 20, "bold"), fg="black").place(x=10, y=200)
+    star_ratings = [1, 2, 3, 4, 5]
+    frames = []
+    dropdown_values = []
+    dropdowns = []
+    rating_values = [tk.IntVar(), tk.IntVar(), tk.IntVar(), tk.IntVar(), tk.IntVar()]
+       
+    radios = []
+    curr_movie_id = 0
+    x_loc = 200
+    y_loc = 200
+    for i in range(len(star_ratings)):
+        frames.append(tk.Frame(root, height=50, width=640, bg=background))
+        frames[i].pack()
+        #combo box
+        dropdown_values.append(tk.StringVar())
+        dropdowns.append(tkentrycomplete.AutocompleteCombobox(textvariable=dropdown_values[i], font=(main_font, main_font_size, main_font_weight), width=40))
+        dropdowns[i].set_completion_list(titles)
+        dropdowns[i].pack(in_=frames[i], side='left')
+        
+        #radios
+        for j in range(len(star_ratings)):
+            radios.append(tk.Radiobutton(root, 
+                       text=str(star_ratings[j]) + ' ★',
+                       font=(main_font, 16, "bold"),
+                       fg=main_font_color, 
+                       bg=background,
+                       padx=0,
+                       variable=rating_values[i],
+                       #command=lambda: set_radio(i),
+                       value=star_ratings[j]).pack(in_=frames[i], side='left'))
+        
+    duplicate_entry = "You may only rate the same movie once"
+    missing_movie = "You forgot to select 5 movies to rate"
+    missing_rating = "Please rate all 5 movies"
+    invalid_user_input = tk.Label(text="", height=0, fg=main_font_color, font=(main_font, main_font_size, main_font_weight), bg=background)
+    movies_rated = {}
+    top_k_recommendations = []
+    def rec_list_to_string(top_k_recommendations):
+        result = ''
+        for i in range(len(top_k_recommendations)):
+            result += str(i + 1) + '.  ' + top_k_recommendations[i] + '\n'
+        return result
     
-    name = tk.StringVar()
-    entry_box = tk.Entry(root, textvariable=name, width=25, bg="lightgreen").place(x=280, y=210)
+    def record_recommend():
+        movies_this_round = {}
+        invalid_user_input.config(text="", height=0)
+        validated = False
+        for i in range(len(rating_values)):
+            try:
+                movie_id = movie_dict[dropdown_values[i].get()]
+                #if there is a duplicate
+                if movie_id in movies_rated:
+                    invalid_user_input.config(text=duplicate_entry, height=3)
+                    break
+                elif movie_id in movies_this_round:
+                    invalid_user_input.config(text=duplicate_entry, height=3)
+                    break
+                else:
+                    user_ratings[i][1] = movie_id
+                    movies_this_round[movie_id] = True
+                    user_ratings[i][2] = rating_values[i].get()
+                    #if user forgot to rate one of the movies
+                    if user_ratings[i][2] == 0:
+                        invalid_user_input.config(text=missing_rating, height=3)
+                        break
+                    if i == len(rating_values) - 1:
+                        validated = True
+            #if user did not select 5 movies
+            except KeyError:
+                invalid_user_input.config(text=missing_movie, height=3)
+        print(validated)
+        if validated:
+            #make function that adds a row to the csv from an element in rating_values
+            invalid_user_input.config(text="", height=0)
+            top_k_recommendations = get_rec(user_ratings, file_with_user_ratings, 5)
+            for j in range(len(user_ratings)):
+                movies_rated[user_ratings[j][1]] = True
+            recommendation_list.config(text=rec_list_to_string(top_k_recommendations), height=6)
+
+                
+    invalid_user_input.pack()
+    recommendation_list = tk.Label(text="", height=0, bg=background, justify='left', fg=main_font_color, font=(main_font, main_font_size, main_font_weight))
+    record_and_recommend = tk.Button(root, text="Recommend Movies", width=30, height=3, fg=main_font_color, bg=button_color, command=record_recommend, font=(main_font, main_font_size, main_font_weight)).pack()
+    recommendation_list.pack()
+ 
+    print(radios)
     
-    def do_it():
-        print("Hello "+ name.get())
+    def clean_up():
+        invalid_user_input.config(text="", height=0)
+        print("movies rated: " + str(movies_rated))
+        try:
+            os.remove(file_with_user_ratings)
+        except FileNotFoundError:
+            print('no file to remove')
+        movies_rated_keys = list(movies_rated.keys())
+        for key in movies_rated_keys:
+            del movies_rated[key]
+        recommendation_list.config(text="", height=0)
+            
+    def end_program():
+        clean_up()
+        root.destroy()
+    new_session_button = tk.Button(root, text="Start New Session", width=30, height=3, fg=main_font_color, bg=button_color, command=clean_up, font=(main_font, main_font_size, main_font_weight)).pack()
+    quit_button = tk.Button(root, text="Quit", width=30, height=3, fg=main_font_color, bg=button_color, command=end_program, font=(main_font, main_font_size, main_font_weight)).pack()
     
-    work = tk.Button(root, text="Enter", width=30, height=5, bg="lightblue", command=do_it).place(x=250, y=300)
+    #validate results
+    #if validated:
     
-    #5 dropdown menus with films to rate (autocomplete), then 
-    #Autocomplete: https://stackoverflow.com/questions/55649709/is-autocomplete-search-feature-available-in-tkinter-combo-box
-    #Radio buttons: https://www.python-course.eu/tkinter_radiobuttons.php
     root.mainloop()
     
 def main():

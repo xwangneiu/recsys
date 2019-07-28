@@ -34,7 +34,7 @@ def get_index_dicts(training_um_df):
 
     return uid_to_index, iid_to_index
 #takes: a U factor resulting from WNMF of a training set utility matrix; a V factor resulting from WNMF of a training set utlity 
-def predict(dataset, dest_filename):
+def predict(dataset, dest_filename, cap_at_5=True):
     training_um_df = dataset.training.um_df
     training_u_df = dataset.training.u_df
     training_v_df = dataset.training.v_df
@@ -64,7 +64,7 @@ def predict(dataset, dest_filename):
             prediction = math.nan
         else:
             prediction = pm[uid_to_index[user]][iid_to_index[item]]
-            if prediction > 5:
+            if prediction > 5 and cap_at_5:
                 prediction = 5
             elif prediction < 1:
                 prediction = 1
