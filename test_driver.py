@@ -133,7 +133,11 @@ def automated_wnmf_test_ml():
 
 def automated_wnmf_test_yelp():
     datasets = [1, 2, 3, 4, 5]
+<<<<<<< HEAD
     #latent_factors = [1, 2, 3, 4, 5, 7, 10, 12, 15, 20, 25, 30, 40, 50]
+=======
+    latent_factors = [100, 200, 300]
+>>>>>>> 83f9e51073d8373f3b4262bd052daa4ecc41eff8
     dataset_choice = 'yelp'
     algo_choice = 'wnmf'
     sim_choice = 'wnmf'

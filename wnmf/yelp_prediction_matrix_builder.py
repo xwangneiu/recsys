@@ -59,7 +59,7 @@ def build(um_dict, output_filename, latent_factors, wnmf_iterations, user_id_dic
     curr_norm = 0
     change = 999999
     print('starting wnmf loop')
-    while(i < wnmf_iterations and change > 0.5):
+    while(i < wnmf_iterations and change > 2):
        print('iteration ' + str(i))
        vt = v.transpose()
        u_num = a * vt
