@@ -10,7 +10,7 @@ sys.path.insert(0, '/item_similarity')
 import datasets
 import time
 
-def run_test(data_source, test_source, name, data, algo, sim, latent_factors, iterations):
+def run_test(data_source, test_source, name, data, algo, sim, latent_factors, iterations, rebuild = False):
     t1 = time.time()
     results_folder = str(algo)
     data_utility_dir = None
@@ -28,7 +28,8 @@ def run_test(data_source, test_source, name, data, algo, sim, latent_factors, it
             algo,                                             #algorithm
             sim,
             latent_factors,
-            iterations)
+            iterations,
+            rebuild_files=rebuild)
         ds.test = datasets.TestSet(
             str(name) + ' test set',                                          #name
             test_source, data)
@@ -65,16 +66,16 @@ def run_test(data_source, test_source, name, data, algo, sim, latent_factors, it
         results_folder += '/'
     if data == 'ml':
         if algo == 'item':
-            ds.build_ml_item_predictions_df('item_similarity/' + str(name) + '_' + str(algo)  + '_' + str(sim) + '_predictions.csv')
+            ds.build_ml_item_predictions_df('item_similarity/' + str(name) + '_' + str(algo)  + '_' + str(sim) + '_predictions.csv', rebuild=True)
         elif algo == 'user':
-            ds.build_ml_user_predictions_df('user_similarity/' + str(name) + '_' + str(algo)  + '_' + str(sim) + '_predictions.csv')
+            ds.build_ml_user_predictions_df('user_similarity/' + str(name) + '_' + str(algo)  + '_' + str(sim) + '_predictions.csv', rebuild=True)
         elif algo == 'wnmf':
             ds.build_ml_wnmf_predictions_df('wnmf/' + str(name) + '_' + str(algo) + '_' + str(sim) + '_predictions.csv')
     elif data == 'yelp':
         if algo == 'item':
-            ds.build_yelp_item_predictions_df('item_similarity/' + str(name) + '_' + str(algo)  + '_' + str(sim) + '_predictions.csv')
+            ds.build_yelp_item_predictions_df('item_similarity/' + str(name) + '_' + str(algo)  + '_' + str(sim) + '_predictions.csv', rebuild=True)
         elif algo == 'user':
-            ds.build_yelp_user_predictions_df('user_similarity/' + str(name) + '_' + str(algo)  + '_' + str(sim) + '_predictions.csv')
+            ds.build_yelp_user_predictions_df('user_similarity/' + str(name) + '_' + str(algo)  + '_' + str(sim) + '_predictions.csv', rebuild=True)
         elif algo == 'wnmf':
             ds.build_yelp_wnmf_predictions_df('wnmf/' + str(name) + '_' + str(algo) + '_' + str(sim) + '_predictions.csv')
     print('Predictions: ')
@@ -118,37 +119,79 @@ def automated_wnmf_test_ml():
     datasets = [1, 2, 3, 4, 5]
     latent_factors = [1, 2, 3, 4, 5, 7, 10, 12, 15, 20, 25, 30, 40, 50]
     for d in datasets:
-        for f in latent_factors:
-            for i in range(1, 31):
-                ds, log_entry = run_test('datasets/ml-100k/u' + str(d) + '.base',  #training set source
-                                    'datasets/ml-100k/u' + str(d) + '.test',       #test set source
-                                    'ml_u' + str(d),                               #dataset name
-                                    'ml',                                                       #type of data
-                                    'wnmf', #algo                                                #algorithm
-                                    'wnmf', #sim                                                #similarity measure
-                                    f,  #latent factors
-                                    i)  #iterations
-                data_source = 'ml'
-                record_in_log_file(data_source, 'wnmf', 'wnmf', log_entry)
+        for f in range(1, 101):
+            i = 500
+            ds, log_entry = run_test('datasets/ml-100k/u' + str(d) + '.base',  #training set source
+                                'datasets/ml-100k/u' + str(d) + '.test',       #test set source
+                                'ml_u' + str(d),                               #dataset name
+                                'ml',                                                       #type of data
+                                'wnmf', #algo                                                #algorithm
+                                'wnmf', #sim                                                #similarity measure
+                                f,  #latent factors
+                                i)  #iterations
+            data_source = 'ml'
+            record_in_log_file(data_source, 'wnmf', 'wnmf', log_entry, log_name='converge')
 
 def automated_wnmf_test_yelp():
     datasets = [1, 2, 3, 4, 5]
-    latent_factors = [100, 200, 300]
+    latent_factors = [1, 2, 3, 4, 5, 7, 10, 12, 15, 20, 25, 30, 40, 50]
     dataset_choice = 'yelp'
     algo_choice = 'wnmf'
     sim_choice = 'wnmf'
     for d in datasets:
-        for f in latent_factors:
-            for i in range(1, 31):
-                ds, log_entry = run_test('datasets/yelp_dataset/yelp_review_uc_training_um_' + str(d) + '.csv',  #training set source
-                                'datasets/yelp_dataset/yelp_review_uc_testing_' + str(d) + '.csv',       #test set source
-                                'yelp_set' + str(d),                               #dataset name
-                                'yelp',                                                       #type of data
-                                algo_choice,                                                #algorithm
-                                sim_choice,
-                                f,
-                                i)
-                record_in_log_file('yelp', algo_choice, sim_choice, log_entry)
+        for f in range(1, 101): #latent factors
+            i = 500
+            ds, log_entry = run_test('datasets/yelp_dataset/yelp_review_uc_training_um_' + str(d) + '.csv',  #training set source
+                            'datasets/yelp_dataset/yelp_review_uc_testing_' + str(d) + '.csv',       #test set source
+                            'yelp_set' + str(d),                               #dataset name
+                            'yelp',                                                       #type of data
+                            algo_choice,                                                #algorithm
+                            sim_choice,
+                            f,
+                            i)
+            record_in_log_file(dataset_choice, algo_choice, sim_choice, log_entry, log_name='converge2')
+
+def automated_neighborhood_test_yelp():
+    datasets = [1, 2, 3, 4, 5]
+    algos = ['item', 'user'];
+    sims = ['pearson', 'cosine']
+    for d in datasets:
+        for algo in algos:
+            for sim in sims:
+                ds, log_entry = run_test('datasets/yelp_dataset/yelp_review_uc_training_' + str(d) + '.csv',  #training set source
+                                    'datasets/yelp_dataset/yelp_review_uc_testing_' + str(d) + '.csv',       #test set source
+                                    'yelp_set_' + str(d),                               #dataset name
+                                    'yelp',                                                       #type of data
+                                    algo,                                                #algorithm
+                                    sim,
+                                    latent_factors = 1,
+                                    iterations = 1,
+                                    rebuild = True)
+                data_source = 'yelp'
+                record_in_log_file(data_source, algo, sim, log_entry, log_name='neighborhood')
+
+def automated_neighborhood_test_ml():
+    datasets = [1, 2, 3, 4, 5]
+    algos = ['item', 'user'];
+    sims = ['pearson', 'cosine']
+    for d in datasets:
+        for algo in algos:
+            for sim in sims:
+                ds, log_entry = run_test('datasets/ml-100k/u' + str(d) + '.base',  #training set source
+                                    'datasets/ml-100k/u' + str(d) + '.test',       #test set source
+                                    'ml_u' + str(d),                               #dataset name
+                                    'ml',                                                       #type of data
+                                    algo, #algo                                                #algorithm
+                                    sim, #sim                                                #similarity measure
+                                    0,  #latent factors
+                                    0, #iterations
+                                    rebuild=True)  #rebuild .csv and .json files
+                data_source = 'ml'
+                record_in_log_file(data_source, algo, sim, log_entry, log_name='neighborhood')
+
+
+
+
                 
 
 
@@ -205,6 +248,11 @@ def test_driver():
                     if change_params == 'y':
                         latent_factors = int(input('Latent factors: '))
                         iterations = int(input('Iterations: '))
+                rebuild_files = input('Rebuild .csv/.json files, y/n?')
+                if rebuild_files == 'y':
+                    rebuild_files = True
+                else:
+                    rebuild_files = False
                 if response_ml <= 5:
                     ds, log_entry = run_test('datasets/ml-100k/u' + str(dataset_choice) + '.base',  #training set source
                                 'datasets/ml-100k/u' + str(dataset_choice) + '.test',       #test set source
@@ -213,7 +261,8 @@ def test_driver():
                                 algo_choice,                                                #algorithm
                                 sim_choice,                                                 #similarity measure
                                 latent_factors,
-                                iterations)
+                                iterations,
+                                rebuild=rebuild_files)
                     data_source = 'ml'
                     record_in_log_file(data_source, algo_choice, sim_choice, log_entry)
         #Yelp Dataset test driver loop
@@ -253,6 +302,11 @@ def test_driver():
                     if change_params == 'y':
                         latent_factors = int(input('Latent factors: '))
                         iterations = int(input('Iterations: '))
+                rebuild_files = input('Rebuild .csv/.json files, y/n?')
+                if rebuild_files == 'y':
+                    rebuild_files = True
+                else:
+                    rebuild_files = False
                 if response_yelp <= 5:
                     if response_yelp <= 4:
                         ds, log_entry = run_test('datasets/yelp_dataset/yelp_review_uc_training_' + str(dataset_choice) + '.csv',  #training set source
@@ -262,7 +316,8 @@ def test_driver():
                                     algo_choice,                                                #algorithm
                                     sim_choice,
                                     latent_factors,
-                                    iterations)
+                                    iterations,
+                                    rebuild=rebuild_files)
                     elif response_yelp == 5:
                         ds, log_entry = run_test('datasets/yelp_dataset/yelp_review_uc_training_um_' + str(dataset_choice) + '.csv',  #training set source
                                     'datasets/yelp_dataset/yelp_review_uc_testing_' + str(dataset_choice) + '.csv',       #test set source
@@ -271,14 +326,17 @@ def test_driver():
                                     algo_choice,                                                #algorithm
                                     sim_choice,
                                     latent_factors,
-                                    iterations)
+                                    iterations,
+                                    rebuild=rebuild_files)
                     data_source = 'yelp'
                     record_in_log_file(data_source, algo_choice, sim_choice, log_entry)
                     
     
 def main():
     #test_driver()
-    automated_wnmf_test_yelp()
+    #automated_neighborhood_test_ml()
+    automated_neighborhood_test_yelp()
+    #automated_wnmf_test_ml()
     #create_log_file('ml_u1', 'ml', 'wnmf', 'wnmf', 'test')
 
 if __name__ == '__main__':
