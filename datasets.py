@@ -15,8 +15,8 @@ Objects are an easy way to bundle them together.
 
 import pandas as pd
 import json
-import correlation
 import sys
+import os
 sys.path.insert(0, 'datasets/yelp_dataset/utility-matrix/')
 
 class Dataset:
@@ -44,36 +44,37 @@ class Dataset:
     #og - original data; um - utility matrix; sm - similarity matrix
     #Keyword Arguments: data=ml,yelp; algo=item,user,wnmf; sim=pearson,cosine,wnmf
     #latent_factors and iterations are for wnmf
-    def __init__(self, name, og_file, um_file, sm_file, data, algo, sim, latent_factors = 3, iterations = 25):
+    #rebuild refers to whether csv/json files for the various matrices are automatically rebuilt, or previously existing files are re-used (False)
+    def __init__(self, name, og_file, um_file, sm_file, data, algo, sim, latent_factors = 1, iterations = 7, rebuild_files = False):
         self.name = name
         print(name + ' is being prepared...')
         if data == 'ml':
             self.og_df = self.build_ml_og_df(og_file) #function returns df
             if algo == 'item':
-                self.um_df = self.build_ml_item_um(um_file) #function returns um df
+                self.um_df = self.build_ml_item_um(um_file, rebuild=rebuild_files) #function returns um df
             elif algo == 'user':
-                self.um_df = self.build_ml_user_um(um_file) #function returns um df
+                self.um_df = self.build_ml_user_um(um_file, rebuild=rebuild_files) #function returns um df
                 print(self.um_df)
             elif algo == 'wnmf':
-                self.um_df = self.build_ml_item_um(um_file)
+                self.um_df = self.build_ml_item_um(um_file, rebuild=rebuild_files)
             if sim == 'pearson':
-                    self.sm_df = self.build_ml_pearson_sm(sm_file) #function returns sim df
+                    self.sm_df = self.build_ml_pearson_sm(sm_file, rebuild=rebuild_files) #function returns sim df
             elif sim == 'cosine':
-                    self.sm_df = self.build_ml_cosine_sm(sm_file)
+                    self.sm_df = self.build_ml_cosine_sm(sm_file, rebuild=rebuild_files)
             elif sim == 'wnmf':
                     self.u_df, self.v_df = self.build_ml_wnmf_prediction_matrix(sm_file, latent_factors, iterations)
         elif data == 'yelp':
             self.og_df = self.build_yelp_og_df(og_file)
             if algo == 'item':
-                self.um_df = self.build_yelp_item_um(um_file) #function returns um df
+                self.um_df = self.build_yelp_item_um(um_file, rebuild=rebuild_files) #function returns um df
             elif algo == 'user':
-                self.um_df = self.build_yelp_user_um(um_file) #function returns um df
+                self.um_df = self.build_yelp_user_um(um_file, rebuild=rebuild_files) #function returns um df
             elif algo == 'wnmf':
-                self.um_df = self.build_yelp_wnmf_um(um_file)
+                self.um_df = self.build_yelp_wnmf_um(um_file, rebuild=rebuild_files)
             if sim == 'pearson':
-                self.sm_df = self.build_yelp_pearson_sm(sm_file) #function returns sim df
+                self.sm_df = self.build_yelp_pearson_sm(sm_file, rebuild=rebuild_files) #function returns sim df
             elif sim == 'cosine':
-                self.sm_df = self.build_yelp_cosine_sm(sm_file)
+                self.sm_df = self.build_yelp_cosine_sm(sm_file, rebuild=rebuild_files)
             elif sim == 'wnmf':
                 self.u_df, self.v_df, self.predictor_log = self.build_yelp_wnmf_prediction_matrix(sm_file, latent_factors, iterations)
         
@@ -95,8 +96,14 @@ class Dataset:
     
     #builds item-based utility matrix for data file at specified filename #GOOD 6/25
     #results in an item-based utility matrix with columns denoted '1', '2', '3' (strings) and rows 1, 2, 3 (integers)
-    def build_ml_item_um(self, um_file):
+    def build_ml_item_um(self, um_file, rebuild = False):
         um_df = None
+        if rebuild:
+            try:
+                os.remove(um_file)
+                print('ml_item_um file removed to rebuild')
+            except FileNotFoundError:
+                print('no ml_item_um file to remove, building')
         try:
             um_df = pd.read_csv(um_file, index_col = 0)
         except FileNotFoundError:
@@ -107,8 +114,14 @@ class Dataset:
         #print(um_df)
         return um_df
     
-    def build_ml_user_um(self, um_file):
+    def build_ml_user_um(self, um_file, rebuild = False):
         um_df = None
+        if rebuild:
+            try:
+                os.remove(um_file)
+                print('ml_user_um file removed to rebuild')
+            except FileNotFoundError:
+                print('no ml_user_um file to remove, continuing')
         try:
             um_df = pd.read_csv(um_file, index_col = 0)
         except FileNotFoundError:
@@ -119,8 +132,14 @@ class Dataset:
         um_df = um_df.T
         return um_df
             
-    def build_ml_pearson_sm(self, sm_file):
+    def build_ml_pearson_sm(self, sm_file, rebuild = False):
         sm_df = None
+        if rebuild:
+            try:
+                os.remove(sm_file)
+                print('ml_pearson_sm file removed to rebuild')
+            except FileNotFoundError:
+                print('no ml_pearson_sm file to remove, continuing')
         try:
             sm_df = pd.read_csv(sm_file, index_col = 0)
         except FileNotFoundError:
@@ -130,8 +149,14 @@ class Dataset:
         print('MovieLens Pearson correlation-based similarity matrix ready (sm_df)')
         return sm_df
     
-    def build_ml_cosine_sm(self, sm_file):
+    def build_ml_cosine_sm(self, sm_file, rebuild = False):
         sm_df = None
+        if rebuild:
+            try:
+                os.remove(sm_file)
+                print('ml_cosine_sm file removed to rebuild')
+            except FileNotFoundError:
+                print('no ml_cosine_sm file to remove, continuing')
         try:
             sm_df = pd.read_csv(sm_file, index_col = 0)
         except FileNotFoundError:
@@ -163,8 +188,14 @@ class Dataset:
         except FileNotFoundError:
             print("build_ml_og_df error: Yelp training set file not at location given")
             
-    def build_yelp_item_um(self, um_file):
+    def build_yelp_item_um(self, um_file, rebuild = False):
         um_df = None
+        if rebuild:
+            try:
+                os.remove(um_file)
+                print('yelp_item_um file removed to rebuild')
+            except FileNotFoundError:
+                print('no yelp_item_um file to remove, continuing')
         try:
             with open(um_file, 'r') as f:
                 um_df = json.load(f)
@@ -175,8 +206,14 @@ class Dataset:
         print('Yelp item-based utility matrix ready')
         return um_df #this is a dictionary
             
-    def build_yelp_user_um(self, um_file):
+    def build_yelp_user_um(self, um_file, rebuild = False):
         um_df = None
+        if rebuild:
+            try:
+                os.remove(um_file)
+                print('yelp_user_um file removed to rebuild')
+            except FileNotFoundError:
+                print('no yelp_user_um file to remove, continuing')
         try:
             with open(um_file, 'r') as f:
                 um_df = json.load(f)
@@ -187,9 +224,15 @@ class Dataset:
         print('Yelp user-based utility matrix ready')
         return um_df #this is a dictionary
     
-    def build_yelp_wnmf_um(self, um_file):
+    def build_yelp_wnmf_um(self, um_file, rebuild = False):
         print("trying to load WNMF UM from location: " + um_file)
         um_df = None
+        if rebuild:
+            try:
+                os.remove(um_file)
+                print('yelp_wnmf_um file removed to rebuild')
+            except FileNotFoundError:
+                print('no yelp_wnmf_um file to remove, continuing')
         try:
             um_df = pd.read_csv(um_file, index_col = 0)
             print(um_df)
@@ -201,8 +244,14 @@ class Dataset:
             Until then, you will be unable to proceed with Yelp WNMF.''')
         
 
-    def build_yelp_pearson_sm(self, sm_file):
+    def build_yelp_pearson_sm(self, sm_file, rebuild = False):
         sm_df = None
+        if rebuild:
+            try:
+                os.remove(sm_file)
+                print('yelp_pearson_sm file removed to rebuild')
+            except FileNotFoundError:
+                print('no yelp_pearson_sm file to remove, continuing')
         try:
             with open(sm_file, 'r') as f:
                 sm_df = json.load(f)
@@ -212,8 +261,14 @@ class Dataset:
             sm_df = ysb.similarity_pearson(self.um_df, sm_file)
         return sm_df
     
-    def build_yelp_cosine_sm(self, sm_file):
+    def build_yelp_cosine_sm(self, sm_file, rebuild = False):
         sm_df = None
+        if rebuild:
+            try:
+                os.remove(sm_file)
+                print('yelp_cosine_sm file removed to rebuild')
+            except FileNotFoundError:
+                print('no file to remove, continuing')
         try:
             with open(sm_file, 'r') as f:
                 sm_df = json.load(f)
@@ -320,8 +375,13 @@ class TrainingAndTest:
     training = None
     test = None
     
-    def build_ml_item_predictions_df(self, predictions_file):
+    def build_ml_item_predictions_df(self, predictions_file, rebuild = False):
         predictions_df = None
+        if rebuild:
+            try:
+                os.remove(predictions_file)
+            except FileNotFoundError:
+                print('no file to remove, continuing')
         try:
             predictions_df = pd.read_csv(predictions_file, index_col = 0)
             print('Prediction results from test set loaded from file (test.predictions_df)')
@@ -335,8 +395,13 @@ class TrainingAndTest:
         print(predictions_df)
         return predictions_df
     
-    def build_ml_user_predictions_df(self, predictions_file):
+    def build_ml_user_predictions_df(self, predictions_file, rebuild = False):
         predictions_df = None
+        if rebuild:
+            try:
+                os.remove(predictions_file)
+            except FileNotFoundError:
+                print('no file to remove, continuing')
         try:
             predictions_df = pd.read_csv(predictions_file, index_col = 0)
             print('Prediction results from test set loaded from file (test.predictions_df)')
@@ -350,7 +415,7 @@ class TrainingAndTest:
         print(predictions_df)
         return predictions_df
     
-    def build_ml_wnmf_predictions_df(self, predictions_file, cap=True):
+    def build_ml_wnmf_predictions_df(self, predictions_file, cap = True):
         print('Running WNMF predictor on given training set')
         from wnmf import ml_wnmf_predictor as mwp
         predictions_df = mwp.predict(self, predictions_file, cap_at_5=cap)
@@ -360,8 +425,13 @@ class TrainingAndTest:
         print(predictions_df)
         return predictions_df
     
-    def build_yelp_item_predictions_df(self, predictions_file):
+    def build_yelp_item_predictions_df(self, predictions_file, rebuild = False):
         predictions_df = None
+        if rebuild:
+            try:
+                os.remove(predictions_file)
+            except FileNotFoundError:
+                print('no file to remove, continuing')
         try:
             predictions_df = pd.read_csv(predictions_file, index_col = 0)
             print('Prediction results from Yelp test set loaded from file (test.predictions_df)')
@@ -376,8 +446,13 @@ class TrainingAndTest:
         print(predictions_df)
         return predictions_df
 
-    def build_yelp_user_predictions_df(self, predictions_file):
+    def build_yelp_user_predictions_df(self, predictions_file, rebuild = False):
         predictions_df = None
+        if rebuild:
+            try:
+                os.remove(predictions_file)
+            except FileNotFoundError:
+                print('no file to remove, continuing')
         try:
             predictions_df = pd.read_csv(predictions_file, index_col=0)
             print('Prediction results from Yelp test set loaded from file (test.predictions_df)')
@@ -412,117 +487,10 @@ class TrainingAndTest:
     def __init__(self, name):
         self.name = name
         print("FYI: If all you are seeing is this message, you may need to initialize the .training and .test instance variable objects using their own constructors. Otherwise, disregard this.")
-
-#DATASET LOADING FUNCTIONS
-def load_ml_100k():
-    ml_100k = Dataset("MovieLens 100k main file")
-    ml_100k.algorithm = 'neighborhood-based collaborative filtering'
-    ml_100k.source = 'datasets/ml-100k/u.data'
-    ml_100k.build_ml_og_df() #build dataframe from the source
-    ml_100k.item_utility_source = 'datasets/ml-100k/utility-matrix/ml_100k_item_utility.csv'
-    #ml_100k.build_item_utility('datasets/ml-100k/utility-matrix/ml_100k_item_utility.csv') #build item-based utility matrix dataframe
-    ml_100k.build_item_utility_df()
-    ml_100k.item_pearson_sim_source = 'item_similarity/ml_100k_item_pearson_sim.csv'
-    #ml_100k.build_item_pearson_sim('item_similarity/ml_100k_item_pearson_sim.csv')
-    ml_100k.build_item_pearson_sim_df() #build item-based utility matrix dataframe
-    #returns Dataset object to calling function
-    return ml_100k
-
-
-    #MovieLens 100k u1 test/training set
-def load_ml_u1():
-    return load_ml_u1_item_pearson()
-    
-def load_ml_u1_for_wnmf():
-    ml_u1 = TrainingAndTest('MovieLens u1 training/test sets')
-    ml_u1.training = Dataset(
-        'u1 training set',                                          #name
-        'datasets/ml-100k/u1.base',                                 #original source
-        'datasets/ml-100k/utility-matrix/ml_u1_item_utility.csv',   #utility matrix
-        'item_similarity/ml_u1_item_pearson_sim.csv',               #similarity matrix
-        'ml',                                                   #data source
-        'item',                                                 #algorithm
-        'pearson')                                              #correlation
-    ml_u1.test = TestSet(
-        'u1 test set',                                              #name
-        'datasets/ml-100k/u1.test')
-    return ml_u1
-
-    #MovieLens 100k u1 test/training set
-def load_ml_u1_item_pearson():
-    #NEED ONLY FUNCTIONS TO BE BUILD FUNCTIONS THAT TAKE A CSV
-    ml_u1 = TrainingAndTest('MovieLens u1 training/test sets')
-    ml_u1.training = Dataset(
-        'u1 training set',                                      #name
-        'datasets/ml-100k/u1.base',                             #original source
-        'datasets/ml-100k/utility-matrix/ml_u1_item_um.csv',    #utility matrix
-        'item_similarity/ml_u1_item_corr_sm.csv',               #similarity matrix
-        'ml',                                                   #data source
-        'item',                                                 #algorithm
-        'pearson')                                              #correlation
-    print("ml_u1.training UM")
-    print(ml_u1.training.um_df)
-    print("ml_u1.training SM")
-    print(ml_u1.training.sm_df)
-    ml_u1.test = TestSet(
-        'u1 test set',                                          #name
-        'datasets/ml-100k/u1.test')
-    ml_u1.build_ml_item_predictions_df('item_similarity/filename')
-    print("ml_u1.test.og_df")
-    print(ml_u1.test.og_df)
-    print("ml_u1.test.predictions_df")
-    print(ml_u1.test.predictions_df)
-    ml_u1.test.calculate_mae()
-    ml_u1.test.calculate_rmse()
-    print("MAE: " + str(ml_u1.test.mae))
-    print("RMSE: " + str(ml_u1.test.rmse))
-    return ml_u1
-
-def load_ml_u1_user_pearson():
-    #NEED ONLY FUNCTIONS TO BE BUILD FUNCTIONS THAT TAKE A CSV
-    ml_u1 = TrainingAndTest('MovieLens u1 training/test sets')
-    ml_u1.training = Dataset(
-        'u1 training set',                                      #name
-        'datasets/ml-100k/u1.base',                             #original source
-        'datasets/ml-100k/utility-matrix/ml_u1_user_um.csv',    #utility matrix
-        'user_similarity/ml_u1_user_pearson_sm.csv',            #similarity matrix
-        'ml',                                                   #data source
-        'user',                                                 #algorithm
-        'pearson')                                              #correlation
-    print("ml_u1.training UM")
-    print(ml_u1.training.um_df)
-    print("ml_u1.training SM")
-    print(ml_u1.training.sm_df)
-    ml_u1.test = TestSet(
-        'u1 test set',                                          #name
-        'datasets/ml-100k/u1.test')
-
-    ml_u1.build_ml_user_predictions_df('user_similarity/ml_u1_user_pearson_predictions.csv')
-    #print("ml_u1.test.og_df")
-    print(ml_u1.test.og_df)
-    
-    print("ml_u1.test.predictions_df")
-    print(ml_u1.test.predictions_df)
-    
-    ml_u1.test.calculate_mae()
-    ml_u1.test.calculate_rmse()
-    print("MAE: " + str(ml_u1.test.mae))
-    print("RMSE: " + str(ml_u1.test.rmse))
-    return ml_u1
-
-def load_yelp_stut():
-    yelp_stut = Dataset("Yelp Stuttgart, Germany Reviews")
-    yelp_stut.item_utility_source = 'datasets/yelp_dataset/utility-matrix/yelp_utility_matrix_stuttgart.csv'
-    yelp_stut.build_item_utility_df()
-    yelp_stut.item_pearson_sim_source = 'item_similarity/yelp_stut_item_pearson_sim.csv'
-    yelp_stut.build_user_pearson_sim('user_similarity/yelp_stut_user_pearson_sim.csv')
-    print(yelp_stut.user_pearson_sim_df)
     
 def main():
-    ml_u1 = load_ml_u1_item_pearson()
-    #print("Correlation between observed values and predictions")
-    #print(ml_u1.test.predictions_df['observed'].corr(ml_u1.test.predictions_df['prediction']))
-    
+    print("Nothing here right now")
+    #use this area for testing if needed
 
 if __name__ == '__main__':
     main()
