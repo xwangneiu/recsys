@@ -48,16 +48,12 @@ def top_k_recommendation(file_with_user_ratings, test_og_df, k):
         'gui_user_test.csv', 'ml')
     ds.build_ml_wnmf_predictions_df(results_folder + str(name) + '_wnmf_predictions.csv', cap=False)
     predictions = ds.test.predictions_df.copy()
-    recommendations = predictions.sort_values('prediction', ascending=False).head(k)
-    print(recommendations)
+    recommendations = predictions.sort_values('prediction', ascending=False).head(k)   
     recommendations = list(recommendations['item'])
-    #print(recommendations)
     movie_dict, titles = movie_titles.get_movie_info()
     recommendations = [movie_dict[i] for i in recommendations]
-    #np.savetxt("test_uv.csv", np.matmul(ds.training.u_df.to_numpy(), ds.training.v_df.to_numpy()), delimiter=',')
-    #print(recommendations)
+
     #delete source files to ensure not reused
-    #set all dataframes to none
     os.remove('../wnmf/ml_gui__u.csv')
     os.remove('../wnmf/ml_gui__v.csv')
     os.remove('../wnmf/ml_gui_wnmf_predictions.csv')
@@ -73,7 +69,6 @@ def get_rec(user_ratings, file_with_user_ratings, k):
     except FileNotFoundError:
         copyfile('../datasets/ml-100k/u.data', file_with_user_ratings)
         df = pd.read_csv(file_with_user_ratings, sep='\t', names=['user', 'movie', 'rating', 'timestamp'])
-    #f = open(file_with_user_ratings, 'a')
     df = pd.read_csv(file_with_user_ratings, sep='\t', names=['user', 'movie', 'rating', 'timestamp'])
     
     ratings_to_write = pd.DataFrame(user_ratings, columns=['user', 'movie', 'rating'])
@@ -82,13 +77,11 @@ def get_rec(user_ratings, file_with_user_ratings, k):
     df.index = [i for i in range(len(df.index))]
     df.to_csv(file_with_user_ratings, sep='\t', index=False, header=None)
     
-    #only recommend movies with >50 ratings
+
     top_movies = df.copy()
     by_ratings = top_movies.groupby('movie')['rating'].count()
-    #print(by_ratings)
     
     movie_ratings = pd.DataFrame(by_ratings).sort_values('rating', ascending=False)
-    #movie_ratings = movie_ratings.groupby('rating').filter(lambda x: x >= 50)
     movie_ratings = movie_ratings[movie_ratings['rating'] > 50]
     movies_to_predict = movie_ratings.index.to_numpy()
     
@@ -99,16 +92,8 @@ def get_rec(user_ratings, file_with_user_ratings, k):
     test_og_df['rating'] = math.nan
     test_og_df['timestamp'] = 999999999
     test_og_df.to_csv('gui_user_test.csv', sep='\t', index=False, header=None)
-    print(test_og_df)
-    
-    #print(user_item_pairs)
-    #append user ratings to u.base
-    #load as new dataset with new user ratings
-    #get user prediction for ALL films (predict on pairs that consist of the active user and all items)
-    #sort by predicted rating (there will be many 5s), and then by popularity or maybe do not cap ratings at 5 anymore in predictor
-    #return top rated 5 as a list
     return top_k_recommendation(file_with_user_ratings, test_og_df, k)
-    #return ["Not a real movie", "Not a real movie", "Not a real movie", "Not a real movie", "Not a real movie"]
+
 def run_gui_app():
     
     #get ID->title / title->ID dictionary and movie titles list
@@ -129,8 +114,8 @@ def run_gui_app():
     headers = tk.Frame(root, height=200, width=640, bg=background)
     headers_subframe_1 = tk.Frame(root, height=200, width=32, bg=background)
     headers_subframe_2 = tk.Frame(root, height=200, width=32, bg=background)
-    movies_title = tk.Label(text="               Select Movies", font=(main_font, 16, "bold"), fg=main_font_color, bg=background).pack(in_=headers_subframe_1, side='left')
-    ratings_title = tk.Label(text="Rate Movies                 ", font=(main_font, 16, "bold"), fg=main_font_color, bg=background).pack(in_=headers_subframe_2, side='left')
+    movies_title = tk.Label(text="               Rate Movies", font=(main_font, 16, "bold"), fg=main_font_color, bg=background).pack(in_=headers_subframe_1, side='left')
+    ratings_title = tk.Label(text="Select Movies                 ", font=(main_font, 16, "bold"), fg=main_font_color, bg=background).pack(in_=headers_subframe_2, side='left')
     headers_subframe_1.pack(in_=headers, side='right')
     headers_subframe_2.pack(in_=headers, side='left')
     headers.pack()
@@ -213,7 +198,7 @@ def run_gui_app():
             #if user did not select 5 movies
             except KeyError:
                 invalid_user_input.config(text=missing_movie, height=3)
-        print(validated)
+        print("data submitted is valid; proceeding with recommendation: " + str(validated))
         if validated:
             #make function that adds a row to the csv from an element in rating_values
             invalid_user_input.config(text="", height=0)
@@ -227,9 +212,7 @@ def run_gui_app():
     recommendation_list = tk.Label(text="", height=0, bg=background, justify='left', fg=main_font_color, font=(main_font, main_font_size, main_font_weight))
     record_and_recommend = tk.Button(root, text="Recommend Movies", width=30, height=3, fg=main_font_color, bg=button_color, command=record_recommend, font=(main_font, main_font_size, main_font_weight)).pack()
     recommendation_list.pack()
- 
-    print(radios)
-    
+     
     def clean_up():
         invalid_user_input.config(text="", height=0)
         print("movies rated: " + str(movies_rated))

@@ -1,0 +1,2 @@
+Timestamp,Data Set,Data Source,Algorithm,Similarity Measure,Latent Factors,Iterations,Final Change,Runtime,MAE,RMSE,
+1564676228.8802788,yelp_set1,yelp,wnmf,wnmf,1,7,6.434764793086117,90.84217047691345,1.098369229725506,1.4801947961755075,

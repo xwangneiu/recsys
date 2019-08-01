@@ -87,8 +87,6 @@ class Dataset:
             og_df = pd.read_csv(og_file, sep='\t', names=['user', 'movie', 'rating', 'timestamp'])
             del og_df['timestamp']
             print("Original MovieLens data file ready (og_df)")
-            print("og_df")
-            print(og_df)
             return og_df
         except FileNotFoundError:
             print("build_ml_og_df error: Original data file not at location given")
@@ -183,7 +181,6 @@ class Dataset:
         try:
             og_df = pd.read_csv(og_file)
             print("Yelp training set loaded (og_df)")
-            print(og_df)
             return og_df #this is a Pandas DataFrame
         except FileNotFoundError:
             print("build_ml_og_df error: Yelp training set file not at location given")
@@ -235,7 +232,6 @@ class Dataset:
                 print('no yelp_wnmf_um file to remove, continuing')
         try:
             um_df = pd.read_csv(um_file, index_col = 0)
-            print(um_df)
             print('Yelp WNMF utility matrix ready')
             return um_df #this is a dictionary
         except FileNotFoundError:
@@ -412,7 +408,6 @@ class TrainingAndTest:
             print('Predictions saved at ' + predictions_file)
         self.test.predictions_df = predictions_df
         print('Prediction results ready (test.predictions_df)')
-        print(predictions_df)
         return predictions_df
     
     def build_ml_wnmf_predictions_df(self, predictions_file, cap = True):
@@ -422,7 +417,6 @@ class TrainingAndTest:
         print('Predictions saved at ' + predictions_file)
         self.test.predictions_df = predictions_df
         print('Prediction results ready (test.predictions_df)')
-        print(predictions_df)
         return predictions_df
     
     def build_yelp_item_predictions_df(self, predictions_file, rebuild = False):
@@ -443,7 +437,6 @@ class TrainingAndTest:
             print('Predictions saved at ' + predictions_file)
         self.test.predictions_df = predictions_df
         print('Prediction results ready (test.predictions_df)')
-        print(predictions_df)
         return predictions_df
 
     def build_yelp_user_predictions_df(self, predictions_file, rebuild = False):
@@ -464,7 +457,6 @@ class TrainingAndTest:
             print('Predictions saved at ' + predictions_file)
         self.test.predictions_df = predictions_df
         print('Prediction results ready (test.predictions_df)')
-        print(predictions_df)
         return predictions_df
     
     def build_yelp_wnmf_predictions_df(self, predictions_file):
@@ -480,7 +472,6 @@ class TrainingAndTest:
         print('Predictions saved at ' + predictions_file)
         self.test.predictions_df = predictions_df
         print('Prediction results ready (test.predictions_df)')
-        print(predictions_df)
         return predictions_df
     
     #CONSTRUCTOR

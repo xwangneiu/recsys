@@ -333,9 +333,9 @@ def test_driver():
                     
     
 def main():
-    #test_driver()
+    test_driver()
     #automated_neighborhood_test_ml()
-    automated_neighborhood_test_yelp()
+    #automated_neighborhood_test_yelp()
     #automated_wnmf_test_ml()
     #create_log_file('ml_u1', 'ml', 'wnmf', 'wnmf', 'test')
 

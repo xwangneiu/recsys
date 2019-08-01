@@ -10,11 +10,11 @@ import json
 
 #loads u.item file with movie IDs and titles; returns dict movie_id and 1D list movie_list with titles only
 def get_movie_info():
-    movie_data = pd.read_csv('../datasets/ml-100k/u.item', sep='\|', header=None)
+    movie_data = pd.read_csv('../datasets/ml-100k/u.item', sep='\|', header=None, engine='python')
     movie_data = movie_data.drop(movie_data.iloc[:, 2:24], axis=1)
     movie_data = movie_data.to_numpy()
     movie_list = movie_data[:, 1]
-    print(movie_list)
+    print("Movie IDs/titles imported using datasets/ml-100k/movie_titles.py")
     movie_id = {}
     for i in range(len(movie_data)):
         movie_id[movie_data[i][0]] = movie_data[i][1]
