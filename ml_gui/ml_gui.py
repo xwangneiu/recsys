@@ -114,9 +114,9 @@ def run_gui_app():
     headers = tk.Frame(root, height=200, width=720, bg=background)
     headers_subframe_1 = tk.Frame(root, height=200, width=360, bg=background)
     headers_subframe_2 = tk.Frame(root, height=200, width=360, bg=background)
-    movies_title = tk.Label(text="Select Movies", font=(main_font, 16, "italic"), fg=main_font_color, bg=background, anchor="w" 
+    movies_title = tk.Label(text="                Select Movies               ", font=(main_font, 16, "italic"), fg=main_font_color, bg=background, anchor="w" 
                             ).pack(in_=headers_subframe_1, side='left')
-    ratings_title = tk.Label(text="Rate Movies (5 is highest)", font=(main_font, 16, "italic"), fg=main_font_color, bg=background, justify="left").pack(in_=headers_subframe_2, side='left')
+    ratings_title = tk.Label(text="              Rate Movies (5 is highest)", font=(main_font, 16, "italic"), fg=main_font_color, bg=background, justify="left").pack(in_=headers_subframe_2, side='left')
     headers_subframe_1.pack(in_=headers, side='left')
     headers_subframe_2.pack(in_=headers, side='left')
     headers.pack()
