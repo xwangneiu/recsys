@@ -99,24 +99,25 @@ def run_gui_app():
     #get ID->title / title->ID dictionary and movie titles list
     movie_dict, titles = movie_titles.get_movie_info()
     root = tk.Tk()
-    root.title('FILM RECOMMENDER')
-    root.geometry("640x640+0+0")
+    root.title('MOVIE RECOMMENDER')
+    root.geometry("720x720+0+0")
     #color and font scheme
-    background = 'firebrick3'
+    background = 'gray6'
     main_font = 'calibri'
     main_font_size = 12
-    main_font_weight = 'bold'
-    main_font_color = 'black'
+    main_font_weight = ''
+    main_font_color = 'gray45'
     button_color = background
     
     root['bg'] = background
-    heading = tk.Label(root, text="MOVIE RECOMMENDER", font=("bauhaus 93", 30), fg="white", bg=background).pack()
-    headers = tk.Frame(root, height=200, width=640, bg=background)
-    headers_subframe_1 = tk.Frame(root, height=200, width=32, bg=background)
-    headers_subframe_2 = tk.Frame(root, height=200, width=32, bg=background)
-    movies_title = tk.Label(text="               Rate Movies", font=(main_font, 16, "bold"), fg=main_font_color, bg=background).pack(in_=headers_subframe_1, side='left')
-    ratings_title = tk.Label(text="Select Movies                 ", font=(main_font, 16, "bold"), fg=main_font_color, bg=background).pack(in_=headers_subframe_2, side='left')
-    headers_subframe_1.pack(in_=headers, side='right')
+    heading = tk.Label(root, text="MOVIE RECOMMENDER", font=("fixedsys", 30), fg=main_font_color, bg=background).pack()
+    headers = tk.Frame(root, height=200, width=720, bg=background)
+    headers_subframe_1 = tk.Frame(root, height=200, width=360, bg=background)
+    headers_subframe_2 = tk.Frame(root, height=200, width=360, bg=background)
+    movies_title = tk.Label(text="Select Movies", font=(main_font, 16, "italic"), fg=main_font_color, bg=background, anchor="w" 
+                            ).pack(in_=headers_subframe_1, side='left')
+    ratings_title = tk.Label(text="Rate Movies (5 is highest)", font=(main_font, 16, "italic"), fg=main_font_color, bg=background, justify="left").pack(in_=headers_subframe_2, side='left')
+    headers_subframe_1.pack(in_=headers, side='left')
     headers_subframe_2.pack(in_=headers, side='left')
     headers.pack()
     #get user ratings
@@ -154,13 +155,14 @@ def run_gui_app():
                        font=(main_font, 16, "bold"),
                        fg=main_font_color, 
                        bg=background,
-                       padx=0,
+                       indicatoron=False,
+                       padx=10,
                        variable=rating_values[i],
                        #command=lambda: set_radio(i),
                        value=star_ratings[j]).pack(in_=frames[i], side='left'))
         
     duplicate_entry = "You may only rate the same movie once"
-    missing_movie = "You forgot to select 5 movies to rate"
+    missing_movie = "Please select 5 movies to rate"
     missing_rating = "Please rate all 5 movies"
     invalid_user_input = tk.Label(text="", height=0, fg=main_font_color, font=(main_font, main_font_size, main_font_weight), bg=background)
     movies_rated = {}
@@ -198,18 +200,20 @@ def run_gui_app():
             #if user did not select 5 movies
             except KeyError:
                 invalid_user_input.config(text=missing_movie, height=3)
-        print("data submitted is valid; proceeding with recommendation: " + str(validated))
         if validated:
+            print("Form submitted is valid; proceeding with recommendation");
             #make function that adds a row to the csv from an element in rating_values
             invalid_user_input.config(text="", height=0)
             top_k_recommendations = get_rec(user_ratings, file_with_user_ratings, 5)
             for j in range(len(user_ratings)):
                 movies_rated[user_ratings[j][1]] = True
             recommendation_list.config(text=rec_list_to_string(top_k_recommendations), height=6)
+        else:
+            print("Form submitted is invalid; user must correct before recommendation")
 
                 
     invalid_user_input.pack()
-    recommendation_list = tk.Label(text="", height=0, bg=background, justify='left', fg=main_font_color, font=(main_font, main_font_size, main_font_weight))
+    recommendation_list = tk.Label(text="", height=0, bg=background, justify='left', fg=main_font_color, font=(main_font, "16", main_font_weight))
     record_and_recommend = tk.Button(root, text="Recommend Movies", width=30, height=3, fg=main_font_color, bg=button_color, command=record_recommend, font=(main_font, main_font_size, main_font_weight)).pack()
     recommendation_list.pack()
      
