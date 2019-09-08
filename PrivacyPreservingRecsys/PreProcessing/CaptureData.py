@@ -153,17 +153,3 @@ class CaptureData:
                     print( f"Finished extracting {n} users ...")
                 
                 
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-    
