@@ -6,6 +6,7 @@
 # The widgets follow the scheme according to the yelp_gui_scheme.png
 
 from tkinter import *
+from tkinter import messagebox
 from tkinter.ttk import *
 from libraries import tkentrycomplete
 import json
@@ -13,6 +14,10 @@ import scipy
 import numpy as np
 from staticmap import StaticMap, CircleMarker
 from PIL import Image, ImageTk 
+import copy
+import time
+
+# https://stackoverflow.com/questions/24440541/python-tkinter-expanding-fontsize-dynamically-to-fill-frame
 
 class App(Frame):
 	def __init__(self, master = None, **options):
@@ -38,6 +43,9 @@ with open('datasets/yelp_dataset/yelp_business_uc_id.json', 'r') as f:
 # This is a dictionary of 'business_id' : 'name (numeric id)'
 with open('datasets/yelp_dataset/yelp_businessid_to_name.json', 'r') as f:
 	bid_to_name = json.load(f)
+# This is a dictionary of 'business_id' : '[longitude, latitude]'
+with open('datasets/yelp_dataset/yelp_business_uc_coordinates.json', 'r') as f:
+	bid_to_coord = json.load(f)
 
 # A dictionary of (categories) : (A list of business names that are within the category)
 with open('datasets/yelp_dataset/yelp_name_by_category_uc.json', 'r') as f:
@@ -48,15 +56,14 @@ c_names = [x for x in b_dict.keys()]
 # This is used to validate entries
 b_names = {x for i in b_dict.values() for x in i}
 
-
-# This is the recommender
+# This is a helper function for sorting the recommendations
 def sort_helper(item):
 	return item[1]
 
+# This is the recommender
 def wnmf(lf, it):
 	try: 
 		a
-		# add updating a[11900]
 	except NameError:
 		a = np.zeros((len(user_id) // 2 + 1, len(business_id) // 2), dtype = int)
 		for k, v in ud.items():
@@ -90,55 +97,114 @@ def wnmf(lf, it):
 	m = np.matmul(u, v)
 	# get last row
 	prediction = m[-1]
-	prediction = [(bid, prediction[bid]) for bid in range(prediction.size) if prediction[bid] <= 40]
+	prediction = [(bid, prediction[bid]) for bid in range(prediction.size) if prediction[bid] <= 6]
 	prediction.sort(reverse = True, key = sort_helper)
-	return prediction[0:5]
+	return prediction
 
 # This method generates the recommendations when called if there are enough reviews
 
 def generate_rec():
-	if len(review_dict) < 5: # && len(review_dict) % 5 != 0
-		# Throw error here
-		print('not enough reviews')
-	else:
-		for x, y in review_dict.items():
-			curr_id = x[str.find(x, '(') + 1 : str.find(x, ')')]
-			if 11900 in ud:
-				print('exists')
-				ud[11900][curr_id] = y
-			else:
-				print('does not exist')
-				ud[11900] = {curr_id: y}
-		print(ud[11900])
-		top_five_recs = wnmf(lf = 2, it = 25)
-		print(top_five_recs)
-		z = ''
-		for i in top_five_recs:
-			z = z + bid_to_name[business_id[str(i[0])]] + '\n'
-		recommendation_var.set(z)
+	for x, y in review_dict.items():
+		curr_id = x[str.find(x, '(') + 1 : str.find(x, ')')]
+		if 11900 in ud:
+			ud[11900][curr_id] = y
+		else:
+			ud[11900] = {curr_id: y}
+	prediction = wnmf(lf = 40, it = 4)
+	# narrow down the prediction to the top 5 recs within the category set
+	top_five_recs = []
+	temp = {c for b in categories_rec for c in b_dict[b]}
+	temp = {b[str.find(b, '(') + 1 : str.find(b, ')')] for b in temp}
+	for i in prediction:
+		if len(top_five_recs) >= 5:
+			break;
+		i = str(i[0])
+		if i in temp:
+			top_five_recs.append(i)
+	temp = []
+	z = ''
+	for i in top_five_recs:
+		curr = business_id[i]
+		z = z + bid_to_name[curr] + '\n'
+
+		curr = bid_to_coord[curr]
+		temp.append(tuple(curr))
+	global m
+	global m_helper
+	m = copy.deepcopy(m_helper)
+	createMap(recs = temp)
+	recommendation_var.set(z)
 
 # After the user presses enter, validate entry and, if correct, add it to the list of reviews and call generate_rec()	
-def submit_form(business, rating, ur_var, rating_var):
+def submit_form(business, rating, cat_var, ur_var, rating_var):
 	if (not business in review_dict.keys() and business in b_names):
+		categories_rec.add(cat_var)
+		temp = business[str.find(business, '(') + 1 : str.find(business, ')')]
+		temp = business_id[temp]
+		temp = bid_to_coord[temp]
+		createMap(reviews = [tuple(temp)])
+
 		review_dict[business] = rating
-		print(review_dict)
 		z = ur_var.get()
 		z = z + business + '\n'
 		user_var.set(z)
 		z = rating_var.get()
 		z = z + str(rating) + '\n'
 		rating_var.set(z)
-		generate_rec()
+		if len(review_dict) >= 5:
+			generate_rec()
 	else:
-		# throw error here
-		print(False)
+		messagebox.showwarning("Warning: Couldn't find business","Please search and select a business from the selection dropdown.")
 
 def reset_reviews():
-	review_dict = {}
+	review_dict.clear()
+	categories_rec.clear()
 	user_var.set('')
 	recommendation_var.set('')
 	rating_var.set('')
+	resetMap()
 
+def createMap(reviews = [], recs = [], zoom = None):
+	global m
+	global m_helper
+	marker = CircleMarker((-88.2234, 40.1064), '#0036FF', 0)
+	m.add_marker(marker)
+	for i in reviews:
+		marker = CircleMarker(i, '#0036FF', 8)
+		m.add_marker(marker)
+		m_helper.add_marker(marker)
+	for i in recs:
+		marker = CircleMarker(i, '#FA2020', 8)
+		m.add_marker(marker)
+	i = 5
+	while i > 0:
+		try:
+			if zoom is not None:
+				image = m.render(zoom)
+			else:
+				image = m.render()
+			break
+		except RuntimeError:
+			i -= 1
+			time.sleep(2)
+		if i == 0:
+			messagebox.showerror("Warning: Couldn't download maps","Please check internet connection.")
+	image = ImageTk.PhotoImage(image)
+	displaymap_image.configure(image = image)
+	displaymap_image.image = image
+
+def resetMap():
+	global m
+	global m_helper
+	m = StaticMap(width, height, tile_size = tile_size)
+	m_helper = StaticMap(width, height, tile_size = tile_size)
+	createMap(zoom = 13)
+
+# These are variables used to track user input
+# This dictionary tracks user submissions { 'business name (id)' : 'rating' }
+review_dict = {}
+# This set tracks what categories the user has inputted
+categories_rec = set()
 
 # All app creation below
 
@@ -146,20 +212,15 @@ root = Tk()
 root.grid_columnconfigure(0, weight=1)
 root.grid_rowconfigure(0, weight=1)
 
-review_dict = {}
-
-# This container and widget starts off as a blank map, and updates after WNMF
-# TB
+# This widget initiates generates an StaticMap and displays the resulting image in a Tkinter Label
 
 width, height, tile_size = (512, 512, 256)
 m = StaticMap(width, height, tile_size = tile_size)
-marker = CircleMarker((-88.2234, 40.1064), '#0036FF', 1)
-m.add_marker(marker)
-image = m.render(15)
-photo = ImageTk.PhotoImage(image)
+m_helper = StaticMap(width, height, tile_size = tile_size)
 
-displaymap_image = Label(image=photo)
+displaymap_image = Label()
 displaymap_image.grid(row = 0, column = 0, rowspan = 3)
+createMap(zoom = 13)
 
 # This is a widget for containing the all interactable widgets
 
@@ -175,7 +236,7 @@ display_container.grid(row = 0, column = 1, rowspan = 2, columnspan = 4, sticky 
 
 reset = App(input_container)
 reset.grid(row = 0, column = 3)
-reset_button = Button(reset, text = 'Reset', command = reset_reviews)
+reset_button = Button(reset, text = 'Reset', command = lambda *args : reset_reviews())
 reset_button.pack()
 
 # This is a widget container for the labels and input boxes
@@ -219,7 +280,7 @@ review_menu.grid(row = 1, column = 0)
 
 enter = App(input_container_sub)
 enter.grid(row = 0, column = 3)
-enter_button = Button(enter, text = 'Enter Rating', command = lambda *args : submit_form(selection_entry.get(), review_var.get(), user_var, rating_var))
+enter_button = Button(enter, text = 'Enter Rating', command = lambda *args : submit_form(selection_entry.get(), review_var.get(), categories_var.get(), user_var, rating_var))
 enter_button.grid(row = 1, column = 0)
 
 # This widget container is for displaying the user's reviews as well as a separator
@@ -256,11 +317,11 @@ recommendation_label.grid(row = 1, column = 0)
 
 # TO DO
 # CURRENT ISSUE:
-# Implement map fully after poster is finished
-# Improve on recommendation system to limit noise
-# Make map bigger, make i/o area more compact
-# Separate review and recommendations with borders or boxes
-# Place 
+# Have all reviews displayed on map as blue
+# Have all recommendations displayed on map as red
+# Limit recommendations
+# Have font rescalable 
+
 
 # Database style??? - to implement after symposium 
 # business id, numeric id/um position, name, category, coordinates or whatever is best for Overpass
@@ -270,7 +331,7 @@ recommendation_label.grid(row = 1, column = 0)
 # -=23adyYNvmda, 304
 
 if __name__ == '__main__':
-	#test = [('Ambar India (400)', 5), ('Amaravati  Indian Royal Cuisine (61)', 5), ('Aroma Curry House (592)', 5), ('Basmati Indian Cuisine (1450)', 3), ('Bombay Indian Grill (346)', 4)]
-	#for i in test:
-	#	submit_form(i[0], i[1],user_var, rating_var)
+	test = [('Ambar India (400)', 5), ('Amaravati  Indian Royal Cuisine (61)', 5), ('Aroma Curry House (592)', 5), ('Basmati Indian Cuisine (1450)', 3), ('Bombay Indian Grill (346)', 4)]
+	for i in test:
+		submit_form(i[0], i[1], c_names[-2], user_var, rating_var)
 	root.mainloop()
