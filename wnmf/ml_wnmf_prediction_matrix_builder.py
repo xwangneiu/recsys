@@ -41,7 +41,8 @@ def build(um_df, output_filename, latent_factors, iterations):
         #update u
         vt = v.T #1650 x 25
         u_num = np.matmul(a, vt) #948 x 1650 * 1650 x 25 = 948 x 25
-        u_denom = np.matmul(np.multiply(w, np.matmul(u, v)), vt) #(948 x 1650) * (1650 x 25) = 948 x 25
+        u_denom = np.matmul(np.mult
+                            iply(w, np.matmul(u, v)), vt) #(948 x 1650) * (1650 x 25) = 948 x 25
         for i in range(len(u)):
             for j in range(len(u[i])):
                 u[i][j] = u[i][j] * (u_num[i][j] / (u_denom[i][j] + 0.0000001))
