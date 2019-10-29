@@ -45,7 +45,8 @@ class Dataset:
     #Keyword Arguments: data=ml,yelp; algo=item,user,wnmf; sim=pearson,cosine,wnmf
     #latent_factors and iterations are for wnmf
     #rebuild refers to whether csv/json files for the various matrices are automatically rebuilt, or previously existing files are re-used (False)
-    def __init__(self, name, og_file, um_file, sm_file, data, algo, sim, latent_factors = 1, iterations = 7, rebuild_files = False):
+    #elwise refers to our own elementwise WNMF algorithm, fall 2019
+    def __init__(self, name, og_file, um_file, sm_file, data, algo, sim, latent_factors = 1, iterations = 7, rebuild_files = False, sklearn = False, elwise = False):
         self.name = name
         print(name + ' is being prepared...')
         if data == 'ml':
@@ -57,12 +58,13 @@ class Dataset:
                 print(self.um_df)
             elif algo == 'wnmf':
                 self.um_df = self.build_ml_item_um(um_file, rebuild=rebuild_files)
+                
             if sim == 'pearson':
                     self.sm_df = self.build_ml_pearson_sm(sm_file, rebuild=rebuild_files) #function returns sim df
             elif sim == 'cosine':
                     self.sm_df = self.build_ml_cosine_sm(sm_file, rebuild=rebuild_files)
-            elif sim == 'wnmf':
-                    self.u_df, self.v_df = self.build_ml_wnmf_prediction_matrix(sm_file, latent_factors, iterations)
+            elif sim == 'wnmf' and not sklearn:
+                    self.u_df, self.v_df = self.build_ml_wnmf_prediction_matrix(sm_file, latent_factors, iterations, elementwise=elwise)
         elif data == 'yelp':
             self.og_df = self.build_yelp_og_df(og_file)
             if algo == 'item':
@@ -77,7 +79,6 @@ class Dataset:
                 self.sm_df = self.build_yelp_cosine_sm(sm_file, rebuild=rebuild_files)
             elif sim == 'wnmf':
                 self.u_df, self.v_df, self.predictor_log = self.build_yelp_wnmf_prediction_matrix(sm_file, latent_factors, iterations)
-        
         
     #METHODS
     #MOVIELENS
@@ -165,12 +166,16 @@ class Dataset:
         #print(sm_df)
         return sm_df
     
-    def build_ml_wnmf_prediction_matrix(self, prediction_matrix_file, latent_factors, iterations):
+    def build_ml_wnmf_prediction_matrix(self, prediction_matrix_file, latent_factors, iterations, elementwise=False):
         u_df = None
         v_df = None
         print('Building MovieLens WMNF prediction matrix for the \'' + self.name + '\' dataset')
-        from wnmf import ml_wnmf_prediction_matrix_builder as pmb
-        u_df, v_df, log = pmb.build(self.um_df, prediction_matrix_file, latent_factors, iterations)
+        if elementwise:
+            from wnmf import ml_wnmf_prediction_matrix_builder_elementwise as pmbe
+            u_df, v_df, log = pmbe.build(self.um_df, prediction_matrix_file, latent_factors, iterations)
+        else:
+            from wnmf import ml_wnmf_prediction_matrix_builder as pmb
+            u_df, v_df, log = pmb.build(self.um_df, prediction_matrix_file, latent_factors, iterations)
         print('WNMF prediction matrix ready')
         self.predictor_log = log
         return u_df, v_df
@@ -370,6 +375,8 @@ class TrainingAndTest:
     algorithm = None
     training = None
     test = None
+    latent_factors = 1
+    iterations = 1
     
     def build_ml_item_predictions_df(self, predictions_file, rebuild = False):
         predictions_df = None
@@ -410,10 +417,13 @@ class TrainingAndTest:
         print('Prediction results ready (test.predictions_df)')
         return predictions_df
     
-    def build_ml_wnmf_predictions_df(self, predictions_file, cap = True):
+    def build_ml_wnmf_predictions_df(self, predictions_file, cap = True, sklearn = False):
         print('Running WNMF predictor on given training set')
         from wnmf import ml_wnmf_predictor as mwp
-        predictions_df = mwp.predict(self, predictions_file, cap_at_5=cap)
+        if sklearn:
+            predictions_df = mwp.predict_sklearn(self, predictions_file, cap_at_5=cap, latent_factors=self.latent_factors, iterations=self.iterations)
+        else:
+            predictions_df = mwp.predict(self, predictions_file, cap_at_5=cap)
         print('Predictions saved at ' + predictions_file)
         self.test.predictions_df = predictions_df
         print('Prediction results ready (test.predictions_df)')
@@ -475,8 +485,10 @@ class TrainingAndTest:
         return predictions_df
     
     #CONSTRUCTOR
-    def __init__(self, name):
+    def __init__(self, name, latent_factors=1, iterations=1):
         self.name = name
+        self.latent_factors = latent_factors
+        self.iterations = iterations
         print("FYI: If all you are seeing is this message, you may need to initialize the .training and .test instance variable objects using their own constructors. Otherwise, disregard this.")
     
 def main():

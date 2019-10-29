@@ -7,6 +7,7 @@ Created on Fri Jul 12 16:04:35 2019
 
 import numpy as np
 import pandas as pd
+import math 
 import time
 
 
@@ -41,8 +42,7 @@ def build(um_df, output_filename, latent_factors, iterations):
         #update u
         vt = v.T #1650 x 25
         u_num = np.matmul(a, vt) #948 x 1650 * 1650 x 25 = 948 x 25
-        u_denom = np.matmul(np.mult
-                            iply(w, np.matmul(u, v)), vt) #(948 x 1650) * (1650 x 25) = 948 x 25
+        u_denom = np.matmul(np.multiply(w, np.matmul(u, v)), vt) #(948 x 1650) * (1650 x 25) = 948 x 25
         for i in range(len(u)):
             for j in range(len(u[i])):
                 u[i][j] = u[i][j] * (u_num[i][j] / (u_denom[i][j] + 0.0000001))
@@ -72,10 +72,34 @@ def build(um_df, output_filename, latent_factors, iterations):
     #actual number of iterations and final change between norm of each iteration
     log_data = str(iteration) + ',' + str(change)
     return u_df, v_df, log_data
+
+def build_sklearn(um_df, output_filename, latent_factors, iterations):
+    from sklearn.decomposition import NMF
+    um = um_df.to_numpy()
+    
+
+    #original utility matrix 
+    a = np.nan_to_num(um)
+    
+    #create matrix w of weights: 1 for observed values, else 0
+    #may not need for sklearn implementation
+    w = np.zeros((len(a), len(a[0])), dtype=int)
+    for i in range(len(a)):
+        for j in range(len(a[i])):
+            if a[i][j] != 0:
+                w[i][j] = 1
+    
+    #initialize NMF model
+    model = NMF(n_components=latent_factors, init='random', solver='mu', max_iter=iterations, verbose=True)
+    
+    print(model.get_params(deep=True))
+    #actual number of iterations and final change between norm of each iteration
+    log_data = str(iterations) + ',' + str(math.nan)
+    return None #u_df, v_df, log_data
     
 def main():
     um_df = pd.read_csv('../datasets/yelp_dataset/yelp_review_uc_training_um_1.csv', index_col = 0)
-    build(um_df, 'wnmf_test_', 3, 25)
+    build_sklearn(um_df, 'wnmf_test_', 3, 25)
     #print(log)
     
 if __name__ == '__main__':

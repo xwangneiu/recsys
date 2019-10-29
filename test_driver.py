@@ -10,7 +10,7 @@ sys.path.insert(0, '/item_similarity')
 import datasets
 import time
 
-def run_test(data_source, test_source, name, data, algo, sim, latent_factors, iterations, rebuild = False):
+def run_test(data_source, test_source, name, data, algo, sim, latent_factors, iterations, rebuild = False, sklearn_wnmf = False, elementwise = False):
     t1 = time.time()
     results_folder = str(algo)
     data_utility_dir = None
@@ -29,7 +29,9 @@ def run_test(data_source, test_source, name, data, algo, sim, latent_factors, it
             sim,
             latent_factors,
             iterations,
-            rebuild_files=rebuild)
+            rebuild_files=rebuild, 
+            sklearn=sklearn_wnmf,
+            elwise = elementwise)
         ds.test = datasets.TestSet(
             str(name) + ' test set',                                          #name
             test_source, data)
@@ -45,7 +47,7 @@ def run_test(data_source, test_source, name, data, algo, sim, latent_factors, it
             data_utility_dir = 'datasets/yelp_dataset/utility-matrix/'
             filetype = 'json'
             um_location = data_utility_dir + 'yelp_review_uc_training_um' + str(algo) + '_um.' + filetype
-        ds = datasets.TrainingAndTest(data + ' training/test sets')
+        ds = datasets.TrainingAndTest(data + ' training/test sets', latent_factors=latent_factors, iterations=iterations)
         ds.training = datasets.Dataset(
             name,                                             #name
             data_source,                                      #original source
@@ -70,7 +72,10 @@ def run_test(data_source, test_source, name, data, algo, sim, latent_factors, it
         elif algo == 'user':
             ds.build_ml_user_predictions_df('user_similarity/' + str(name) + '_' + str(algo)  + '_' + str(sim) + '_predictions.csv', rebuild=True)
         elif algo == 'wnmf':
-            ds.build_ml_wnmf_predictions_df('wnmf/' + str(name) + '_' + str(algo) + '_' + str(sim) + '_predictions.csv')
+            if sklearn_wnmf:
+                ds.build_ml_wnmf_predictions_df('wnmf/' + str(name) + '_' + str(algo) + '_' + str(sim) + '_predictions.csv', sklearn=True)
+            else:
+                ds.build_ml_wnmf_predictions_df('wnmf/' + str(name) + '_' + str(algo) + '_' + str(sim) + '_predictions.csv')
     elif data == 'yelp':
         if algo == 'item':
             ds.build_yelp_item_predictions_df('item_similarity/' + str(name) + '_' + str(algo)  + '_' + str(sim) + '_predictions.csv', rebuild=True)
@@ -117,20 +122,22 @@ def record_in_log_file(data, algo, sim, log_entry, log_name=''):
 
 def automated_wnmf_test_ml():
     datasets = [1, 2, 3, 4, 5]
-    latent_factors = [1, 2, 3, 4, 5, 7, 10, 12, 15, 20, 25, 30, 40, 50]
+    latent_factors = [2, 3, 4, 5]
     for d in datasets:
-        for f in range(1, 101):
-            i = 500
-            ds, log_entry = run_test('datasets/ml-100k/u' + str(d) + '.base',  #training set source
+        for f in latent_factors:
+            for i in range(1, 10): #number of iterations
+                ds, log_entry = run_test('datasets/ml-100k/u' + str(d) + '.base',  #training set source
                                 'datasets/ml-100k/u' + str(d) + '.test',       #test set source
                                 'ml_u' + str(d),                               #dataset name
                                 'ml',                                                       #type of data
                                 'wnmf', #algo                                                #algorithm
                                 'wnmf', #sim                                                #similarity measure
                                 f,  #latent factors
-                                i)  #iterations
-            data_source = 'ml'
-            record_in_log_file(data_source, 'wnmf', 'wnmf', log_entry, log_name='converge')
+                                i, #iterations
+                                sklearn_wnmf=False, #to use scikit-learn NMF library
+                                elementwise=True)
+                data_source = 'ml'
+                record_in_log_file(data_source, 'wnmf', 'wnmf', log_entry, log_name='converge')
 
 def automated_wnmf_test_yelp():
     datasets = [1, 2, 3, 4, 5]
@@ -333,10 +340,10 @@ def test_driver():
                     
     
 def main():
-    test_driver()
+    #test_driver()
     #automated_neighborhood_test_ml()
     #automated_neighborhood_test_yelp()
-    #automated_wnmf_test_ml()
+    automated_wnmf_test_ml()
     #create_log_file('ml_u1', 'ml', 'wnmf', 'wnmf', 'test')
 
 if __name__ == '__main__':

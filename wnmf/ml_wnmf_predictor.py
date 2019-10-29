@@ -33,7 +33,8 @@ def get_index_dicts(training_um_df):
         iid_to_index[item_indices[i]] = i
 
     return uid_to_index, iid_to_index
-#takes: a U factor resulting from WNMF of a training set utility matrix; a V factor resulting from WNMF of a training set utlity 
+#takes: a U factor resulting from WNMF of a training set utility matrix; a V factor resulting from WNMF of a training set utility
+# cap_at_5 refers to limiting prediction at 5
 def predict(dataset, dest_filename, cap_at_5=True):
     training_um_df = dataset.training.um_df
     training_u_df = dataset.training.u_df
@@ -77,8 +78,53 @@ def predict(dataset, dest_filename, cap_at_5=True):
     print(results)
     results.to_csv(dest_filename)
     return results
+
+#predict with scikit-learn 
+def predict_sklearn(dataset, dest_filename, cap_at_5=True, latent_factors = 1, iterations = 1):
+    training_um_df = dataset.training.um_df
+    test_og_df = dataset.test.og_df
+    users_and_items = dataset.test.user_item_pairs_df
     
+    #get a new prediction matrix using sklearn
+    #WNMF-modified sklearn library is one level up from recsys folder locally
+    a = training_um_df.to_numpy()
+    from sklearn.decomposition import NMF
+    #change NaNs in utility matrix to 0s 
+    a = np.nan_to_num(a)
+    model = NMF(n_components=latent_factors, init='random', solver='mu', max_iter=iterations, verbose=True)
+    #train model on training set utility matrix and return prediction matrix
+    pm = model.fit_transform(a)
     
+    uid_to_index, iid_to_index = get_index_dicts(training_um_df)
+    
+    users_and_items = users_and_items.to_numpy()
+    predictions = np.zeros(len(users_and_items), dtype=float)
+    results = test_og_df
+    
+    for i in range(len(users_and_items)):
+        #print('Predicting user/item pair ' + str(i + 1))
+        
+        user = users_and_items[i][0]
+        item = users_and_items[i][1]
+        if user not in uid_to_index:
+            prediction = math.nan
+        elif item not in iid_to_index:
+            prediction = math.nan
+        else:
+            prediction = pm[uid_to_index[user]][iid_to_index[item]]
+            if prediction > 5 and cap_at_5:
+                prediction = 5
+            elif prediction < 1:
+                prediction = 1
+        #print("User: " + str(user) + " Item: " + str(item) + " Prediction: " + str(prediction))
+        predictions[i] = prediction
+    
+    predictions = pd.Series(predictions)
+    
+    results['prediction'] = predictions
+    print(results)
+    results.to_csv(dest_filename)
+    return results
 def main():
     print('nothing here yet')
     
