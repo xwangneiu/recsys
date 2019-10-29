@@ -315,14 +315,6 @@ recommendation_var = StringVar()
 recommendation_label = Label(user_recommendations, textvariable = recommendation_var, justify = 'center')
 recommendation_label.grid(row = 1, column = 0)
 
-# TO DO
-# CURRENT ISSUE:
-# Have all reviews displayed on map as blue
-# Have all recommendations displayed on map as red
-# Limit recommendations
-# Have font rescalable 
-
-
 # Database style??? - to implement after symposium 
 # business id, numeric id/um position, name, category, coordinates or whatever is best for Overpass
 # ao23RekjzT-09, 438, McDonald's, Restaurant, -50.20956 or whatever is best for Overpass
@@ -331,7 +323,7 @@ recommendation_label.grid(row = 1, column = 0)
 # -=23adyYNvmda, 304
 
 if __name__ == '__main__':
-	test = [('Ambar India (400)', 5), ('Amaravati  Indian Royal Cuisine (61)', 5), ('Aroma Curry House (592)', 5), ('Basmati Indian Cuisine (1450)', 3), ('Bombay Indian Grill (346)', 4)]
-	for i in test:
-		submit_form(i[0], i[1], c_names[-2], user_var, rating_var)
+	# test = [('Ambar India (400)', 5), ('Amaravati  Indian Royal Cuisine (61)', 5), ('Aroma Curry House (592)', 5), ('Basmati Indian Cuisine (1450)', 3), ('Bombay Indian Grill (346)', 4)]
+	# for i in test:
+	# 	submit_form(i[0], i[1], c_names[-2], user_var, rating_var)
 	root.mainloop()
